@@ -7,7 +7,7 @@ import sys
 # ============================================
 
 # Пробуем получить токен из переменных окружения
-BOT_TOKEN = os.environ.get('BOT_TOKEN')
+BOT_TOKEN = os.environ.get('8836224811:AAH352CQXMaaoNmqNqir8GOSIa0qKGd56lY')
 
 # Если не найден, пробуем другие варианты
 if not BOT_TOKEN:
