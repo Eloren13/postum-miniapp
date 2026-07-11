@@ -2,6 +2,7 @@
 import os
 import threading
 import time
+import asyncio
 from flask import Flask, send_from_directory, jsonify, request
 from flask_cors import CORS
 import config
@@ -277,7 +278,7 @@ def check_achievements():
     return jsonify({'unlocked': unlocked})
 
 # ============================================
-# 4. ЗАПУСК БОТА (СРАЗУ ПРИ ИМПОРТЕ)
+# 4. ЗАПУСК БОТА (ЗАПУСКАЕТСЯ СРАЗУ ПРИ ЗАГРУЗКЕ)
 # ============================================
 
 def run_bot():
@@ -329,17 +330,21 @@ def run_bot():
         traceback.print_exc()
 
 # ============================================
-# 5. ЗАПУСКАЕМ БОТА В ФОНОВОМ ПОТОКЕ СРАЗУ
+# 5. ЗАПУСКАЕМ БОТА В ФОНОВОМ ПОТОКЕ (СРАЗУ)
 # ============================================
 
 print("🔄 Запуск бота в фоновом потоке...")
 bot_thread = threading.Thread(target=run_bot, daemon=True)
 bot_thread.start()
-time.sleep(2)
-print("✅ Бот должен быть запущен!")
+
+# Даем боту время на запуск
+time.sleep(3)
+print("✅ Бот запущен!")
 
 # ============================================
 # 6. Flask приложение готово к использованию
 # ============================================
 
 print("🌐 Flask приложение готово!")
+
+# Это нужно для Gunicorn - он будет использовать объект app
