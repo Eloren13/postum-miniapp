@@ -1,0 +1,462 @@
+/* web_app/style.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #fff;
+    min-height: 100vh;
+    padding: 16px;
+}
+
+#app {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.screen {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.screen.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.header {
+    text-align: center;
+    padding: 20px 0 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    font-size: 28px;
+    background: linear-gradient(45deg, #f7971e, #ffd200);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.user-info {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+.user-info span {
+    background: rgba(255,255,255,0.06);
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.screen-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.screen-header h2 {
+    font-size: 20px;
+    flex: 1;
+}
+
+/* Buttons */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.menu-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #fff;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.menu-btn:hover {
+    background: rgba(255,255,255,0.12);
+    transform: translateY(-1px);
+}
+
+.menu-btn:active {
+    transform: scale(0.98);
+}
+
+.menu-btn.primary {
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    color: #1a1a2e;
+    font-weight: bold;
+    border: none;
+}
+
+.small-btn {
+    background: #f7971e;
+    border: none;
+    color: #1a1a2e;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.small-btn:hover {
+    transform: scale(1.05);
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+/* Daily Challenge */
+.daily-challenge {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
+}
+
+.daily-challenge h3 {
+    font-size: 15px;
+    margin-bottom: 6px;
+}
+
+.daily-challenge p {
+    color: #aaa;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* Quick Topics */
+.quick-topics {
+    margin-top: 16px;
+}
+
+.quick-topics h3 {
+    font-size: 15px;
+    margin-bottom: 10px;
+}
+
+#quick-topics-container {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.quick-topic-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.quick-topic-btn:hover {
+    background: rgba(255,255,255,0.12);
+}
+
+/* Disciplines Grid */
+#disciplines-container,
+#sections-container,
+#topics-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 12px 0;
+}
+
+.discipline-card,
+.section-card,
+.topic-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.discipline-card:hover,
+.section-card:hover,
+.topic-card:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+}
+
+.discipline-card .icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.discipline-card .name {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.discipline-card .desc {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+}
+
+/* Progress Bar */
+.progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+#progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f7971e, #ffd200);
+    transition: width 0.5s ease;
+}
+
+/* Question */
+#question-text {
+    font-size: 20px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+#question-topic {
+    display: block;
+    margin-bottom: 8px;
+}
+
+#options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.option-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: left;
+    font-size: 14px;
+}
+
+.option-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.12);
+}
+
+.option-btn.correct {
+    background: rgba(46, 213, 115, 0.25);
+    border-color: #2ed573;
+}
+
+.option-btn.wrong {
+    background: rgba(255, 71, 87, 0.25);
+    border-color: #ff4757;
+}
+
+.option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Quiz Filters */
+#quiz-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+#quiz-filters select {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+#quiz-filters select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
+/* Results */
+.result-content {
+    text-align: center;
+    padding: 30px 0;
+}
+
+.result-content h2 {
+    font-size: 28px;
+    margin-bottom: 16px;
+}
+
+#result-stats {
+    font-size: 16px;
+    line-height: 2;
+    color: #aaa;
+    margin-bottom: 24px;
+}
+
+/* Stats */
+#stats-container {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 20px;
+    line-height: 2.2;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.stat-item .label {
+    color: #888;
+}
+
+.stat-item .value {
+    font-weight: bold;
+}
+
+/* Achievements */
+.achievement {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+}
+
+.achievement .icon {
+    font-size: 28px;
+}
+
+.achievement .info {
+    flex: 1;
+}
+
+.achievement .info .name {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.achievement .info .desc {
+    font-size: 12px;
+    color: #888;
+}
+
+.achievement.locked {
+    opacity: 0.4;
+}
+
+.achievement.unlocked {
+    border-left: 3px solid #ffd200;
+}
+
+/* Learning Materials */
+#learning-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.learning-item {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.learning-item:hover {
+    background: rgba(255,255,255,0.09);
+}
+
+.learning-item .title {
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.learning-item .description {
+    font-size: 13px;
+    color: #888;
+    margin-top: 4px;
+}
+
+#material-content {
+    line-height: 1.8;
+    font-size: 15px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 12px 0;
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+    #disciplines-container,
+    #sections-container,
+    #topics-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .user-info {
+        font-size: 11px;
+    }
+    
+    #question-text {
+        font-size: 17px;
+    }
+}
