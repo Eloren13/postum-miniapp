@@ -15,7 +15,7 @@ if not BOT_TOKEN:
 # 2. НАСТРОЙКИ ВЕБ-ПРИЛОЖЕНИЯ
 # ============================================
 
-WEB_APP_URL = os.environ.get('WEB_APP_URL', 'http://localhost:5000')
+WEB_APP_URL = os.environ.get('WEB_APP_URL', 'https://postum-miniapp.onrender.com')
 
 # ============================================
 # 3. НАСТРОЙКИ БАЗЫ ДАННЫХ
