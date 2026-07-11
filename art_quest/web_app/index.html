@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Арт-Квест</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Главный экран -->
+        <div id="main-screen" class="screen active">
+            <div class="header">
+                <h1>🎨 Арт-Квест</h1>
+                <div class="user-info">
+                    <span id="user-name">Игрок</span>
+                    <span id="user-score">⭐ 0</span>
+                    <span id="user-level">🏆 Ур.1</span>
+                    <span id="user-xp">⚡ 0 XP</span>
+                </div>
+            </div>
+            
+            <div class="menu">
+                <button class="menu-btn primary" onclick="showLearning()">📖 Обучение</button>
+                <button class="menu-btn" onclick="showQuiz()">🎯 Викторина</button>
+                <button class="menu-btn" onclick="showDisciplines()">📚 Дисциплины</button>
+                <button class="menu-btn" onclick="showStats()">📊 Прогресс</button>
+                <button class="menu-btn" onclick="showAchievements()">🏅 Достижения</button>
+            </div>
+            
+            <div class="daily-challenge">
+                <h3>🔥 Ежедневный вызов</h3>
+                <p id="daily-question">Загрузка...</p>
+                <button class="small-btn" onclick="startDaily()">Ответить</button>
+                <span id="daily-streak" style="display:block; margin-top:8px; font-size:12px; color:#888;">🔥 Серия: 0 дней</span>
+            </div>
+            
+            <div class="quick-topics">
+                <h3>⚡ Быстрый старт</h3>
+                <div id="quick-topics-container"></div>
+            </div>
+        </div>
+        
+        <!-- Экран обучения -->
+        <div id="learning-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="goHome()">←</button>
+                <h2>📖 Обучение</h2>
+            </div>
+            <div id="learning-container"></div>
+        </div>
+        
+        <!-- Экран материала -->
+        <div id="material-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="showLearning()">←</button>
+                <h2 id="material-title">Материал</h2>
+            </div>
+            <div id="material-content"></div>
+            <button class="menu-btn" onclick="startQuizFromMaterial()">🎯 Проверить знания</button>
+        </div>
+        
+        <!-- Экран викторины -->
+        <div id="quiz-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="goHome()">←</button>
+                <h2>🎯 Викторина</h2>
+            </div>
+            <div id="quiz-filters">
+                <select id="quiz-discipline" onchange="updateQuizTopics()">
+                    <option value="all">Все дисциплины</option>
+                </select>
+                <select id="quiz-topic">
+                    <option value="all">Все темы</option>
+                </select>
+                <select id="quiz-difficulty">
+                    <option value="all">Любая сложность</option>
+                    <option value="1">Легкая</option>
+                    <option value="2">Средняя</option>
+                    <option value="3">Сложная</option>
+                </select>
+                <button class="small-btn" onclick="startQuiz()">Начать</button>
+            </div>
+            <div id="quiz-container"></div>
+        </div>
+        
+        <!-- Экран вопроса -->
+        <div id="question-screen" class="screen">
+            <div class="progress-bar">
+                <span id="question-counter">1/10</span>
+                <div class="bar"><div id="progress-fill" style="width: 10%"></div></div>
+            </div>
+            <div id="question-container">
+                <span id="question-topic" style="color:#888; font-size:12px;">Тема</span>
+                <h2 id="question-text">Вопрос загружается...</h2>
+                <div id="options-container"></div>
+            </div>
+            <div id="question-explanation" style="display:none; margin-top:16px; padding:12px; background:rgba(255,255,255,0.05); border-radius:8px;"></div>
+        </div>
+        
+        <!-- Экран результата -->
+        <div id="result-screen" class="screen">
+            <div class="result-content">
+                <h2 id="result-title">🏆 Результат</h2>
+                <div id="result-stats"></div>
+                <button class="menu-btn" onclick="startQuiz()">🔄 Ещё раз</button>
+                <button class="back-btn" onclick="goHome()">← На главную</button>
+            </div>
+        </div>
+        
+        <!-- Экран дисциплин -->
+        <div id="disciplines-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="goHome()">←</button>
+                <h2>📚 Дисциплины</h2>
+            </div>
+            <div id="disciplines-container"></div>
+        </div>
+        
+        <!-- Экран разделов -->
+        <div id="sections-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="showDisciplines()">←</button>
+                <h2 id="sections-title">Разделы</h2>
+            </div>
+            <div id="sections-container"></div>
+        </div>
+        
+        <!-- Экран тем -->
+        <div id="topics-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="showSections()">←</button>
+                <h2 id="topics-title">Темы</h2>
+            </div>
+            <div id="topics-container"></div>
+        </div>
+        
+        <!-- Экран статистики -->
+        <div id="stats-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="goHome()">←</button>
+                <h2>📊 Мой прогресс</h2>
+            </div>
+            <div id="stats-container"></div>
+        </div>
+        
+        <!-- Экран достижений -->
+        <div id="achievements-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="goHome()">←</button>
+                <h2>🏅 Достижения</h2>
+            </div>
+            <div id="achievements-container"></div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
