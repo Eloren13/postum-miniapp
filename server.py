@@ -1,4 +1,4 @@
-# server.py (обновленная версия)
+# server.py
 import os
 import threading
 import time
@@ -10,6 +10,7 @@ from database import init_db, seed_database, get_db
 # ============================================
 # 1. ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ
 # ============================================
+print("🔄 Инициализация базы данных...")
 init_db()
 seed_database()
 
@@ -20,17 +21,15 @@ app = Flask(__name__, static_folder='web_app')
 CORS(app)
 
 # ============================================
-# 3. МАРШРУТЫ ДЛЯ ВЕБ-ПРИЛОЖЕНИЯ
+# 3. ВСЕ МАРШРУТЫ (как были)
 # ============================================
 
 @app.route('/')
 def index():
-    """Главная страница мини-приложения"""
     return send_from_directory('web_app', 'index.html')
 
 @app.route('/api/disciplines')
 def get_disciplines():
-    """Получение списка дисциплин"""
     conn = get_db()
     disciplines = conn.execute('SELECT * FROM disciplines ORDER BY name').fetchall()
     conn.close()
@@ -38,7 +37,6 @@ def get_disciplines():
 
 @app.route('/api/sections/<int:discipline_id>')
 def get_sections(discipline_id):
-    """Получение разделов по дисциплине"""
     conn = get_db()
     sections = conn.execute(
         'SELECT * FROM sections WHERE discipline_id = ? ORDER BY order_num',
@@ -56,7 +54,6 @@ def get_sections(discipline_id):
 
 @app.route('/api/topics/<int:section_id>')
 def get_topics(section_id):
-    """Получение тем по разделу"""
     conn = get_db()
     topics = conn.execute('''
         SELECT t.*, COUNT(q.id) as question_count 
@@ -78,7 +75,6 @@ def get_topics(section_id):
 
 @app.route('/api/questions/random')
 def get_random_questions():
-    """Получение случайных вопросов"""
     limit = int(request.args.get('limit', 10))
     topic_id = request.args.get('topic')
     discipline_id = request.args.get('discipline')
@@ -114,7 +110,6 @@ def get_random_questions():
 
 @app.route('/api/questions/topic/<int:topic_id>')
 def get_topic_questions(topic_id):
-    """Получение вопросов по теме"""
     limit = int(request.args.get('limit', 10))
     conn = get_db()
     questions = conn.execute('''
@@ -130,7 +125,6 @@ def get_topic_questions(topic_id):
 
 @app.route('/api/learning')
 def get_learning_materials():
-    """Получение обучающих материалов"""
     conn = get_db()
     materials = conn.execute('''
         SELECT lm.*, t.name as topic_name 
@@ -144,7 +138,6 @@ def get_learning_materials():
 
 @app.route('/api/material/<int:material_id>')
 def get_material(material_id):
-    """Получение конкретного материала"""
     conn = get_db()
     material = conn.execute('''
         SELECT lm.*, t.name as topic_name 
@@ -157,7 +150,6 @@ def get_material(material_id):
 
 @app.route('/api/daily')
 def get_daily():
-    """Ежедневный вопрос"""
     conn = get_db()
     question = conn.execute('''
         SELECT q.*, t.name as topic_name 
@@ -165,13 +157,12 @@ def get_daily():
         JOIN topics t ON t.id = q.topic_id
         ORDER BY RANDOM() 
         LIMIT 1
-    ''') .fetchone()
+    ''').fetchone()
     conn.close()
     return jsonify(dict(question) if question else {'question': 'Вопрос не найден'})
 
 @app.route('/api/progress', methods=['POST'])
 def save_progress():
-    """Сохранение прогресса пользователя"""
     data = request.json
     user_id = data.get('user_id')
     question_id = data.get('question_id')
@@ -203,7 +194,6 @@ def save_progress():
 
 @app.route('/api/achievements')
 def get_achievements():
-    """Получение достижений"""
     conn = get_db()
     achievements = conn.execute('SELECT * FROM achievements').fetchall()
     conn.close()
@@ -211,7 +201,6 @@ def get_achievements():
 
 @app.route('/api/discipline-topics/<int:discipline_id>')
 def get_discipline_topics(discipline_id):
-    """Получение тем по дисциплине"""
     conn = get_db()
     topics = conn.execute('''
         SELECT t.* FROM topics t
@@ -224,7 +213,6 @@ def get_discipline_topics(discipline_id):
 
 @app.route('/api/topics/quick')
 def get_quick_topics():
-    """Быстрые темы для главной страницы"""
     conn = get_db()
     topics = conn.execute('''
         SELECT t.*, d.icon 
@@ -239,7 +227,6 @@ def get_quick_topics():
 
 @app.route('/api/check-achievements', methods=['POST'])
 def check_achievements():
-    """Проверка достижений пользователя"""
     data = request.json
     user_id = data.get('id')
     
@@ -290,15 +277,14 @@ def check_achievements():
     return jsonify({'unlocked': unlocked})
 
 # ============================================
-# 4. ЗАПУСК БОТА В ФОНОВОМ ПОТОКЕ
+# 4. ЗАПУСК БОТА (ПРЯМО ЗДЕСЬ, ДО GUNICORN)
 # ============================================
 
 def run_bot():
-    """Запуск Telegram бота в отдельном потоке"""
+    """Запуск Telegram бота"""
     try:
         from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup
         from telegram.ext import Application, CommandHandler, ContextTypes
-        import config
         
         print("🤖 Запуск Telegram бота...")
         
@@ -335,7 +321,7 @@ def run_bot():
         bot_app.add_handler(CommandHandler("play", start))
         
         print("🚀 Бот запущен и готов к работе!")
-        bot_app.run_polling()
+        bot_app.run_polling(allowed_updates=[])
         
     except Exception as e:
         print(f"❌ Ошибка при запуске бота: {e}")
@@ -346,8 +332,8 @@ def run_bot():
 # 5. ЗАПУСК ПРИЛОЖЕНИЯ
 # ============================================
 
-if __name__ == '__main__':
-    # Запускаем бота в фоновом потоке
+if __name__ == "__main__":
+    # Запускаем бота в отдельном потоке
     bot_thread = threading.Thread(target=run_bot, daemon=True)
     bot_thread.start()
     
