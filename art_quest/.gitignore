@@ -1,1 +1,271 @@
+# .gitignore
+# Полная версия для Python-проекта с Telegram ботом и Flask
 
+# ============================================
+# 1. PYTHON СЛУЖЕБНЫЕ ФАЙЛЫ
+# ============================================
+
+# Байт-код Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# Скомпилированные файлы
+*.so
+*.dll
+*.dylib
+
+# Файлы распределения / упаковки
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ============================================
+# 2. СЕКРЕТЫ И КОНФИГУРАЦИИ
+# ============================================
+
+# Файлы с переменными окружения (САМОЕ ВАЖНОЕ!)
+.env
+.env.local
+.env.production
+.env.development
+*.env
+
+# Файлы с секретными ключами
+config_local.py
+config_secret.py
+secret_*.py
+credentials.json
+*.key
+*.pem
+*.crt
+
+# ============================================
+# 3. БАЗЫ ДАННЫХ
+# ============================================
+
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Другие БД
+*.mdb
+*.accdb
+
+# ============================================
+# 4. IDE И РЕДАКТОРЫ
+# ============================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+.history/
+
+# PyCharm
+.idea/
+*.iml
+.DS_Store
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+.sublime/
+
+# Vim
+*.swp
+*.swo
+*~
+*.un~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+
+# ============================================
+# 5. ЛОГИ И ВРЕМЕННЫЕ ФАЙЛЫ
+# ============================================
+
+# Логи
+*.log
+logs/
+log/
+*.log.*
+
+# Временные файлы
+*.tmp
+*.temp
+*.cache
+*.pid
+*.seed
+*.pid.lock
+
+# ============================================
+# 6. ФАЙЛЫ ОПЕРАЦИОННОЙ СИСТЕМЫ
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+*.directory
+
+# ============================================
+# 7. ВИРТУАЛЬНЫЕ ОКРУЖЕНИЯ
+# ============================================
+
+# venv (стандартное)
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.env/
+
+# Virtualenv
+lib64/
+pyvenv.cfg
+
+# Pipenv
+Pipfile.lock
+.venv/
+
+# Poetry
+.poetry/
+
+# ============================================
+# 8. ТЕСТИРОВАНИЕ И ПОКРЫТИЕ
+# ============================================
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# unittest
+__pycache__/
+*.pyc
+
+# ============================================
+# 9. JUPYTER NOTEBOOKS
+# ============================================
+
+.ipynb_checkpoints/
+*.ipynb
+*/.ipynb_checkpoints/
+
+# ============================================
+# 10. ФАЙЛЫ ПРОЕКТА
+# ============================================
+
+# Пользовательские данные
+data/
+uploads/
+downloads/
+temp/
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Документация
+docs/_build/
+site/
+*.pdf
+*.epub
+
+# ============================================
+# 11. RENDER / DEPLOY
+# ============================================
+
+# Render
+.render/
+*.deploy
+
+# Heroku
+.heroku/
+*.slug
+
+# ============================================
+# 12. ДОПОЛНИТЕЛЬНО
+# ============================================
+
+# Файлы резервных копий
+*.bak
+*.backup
+*.old
+*.orig
+
+# Файлы конфигурации Docker
+*.dockerignore
+
+# Файлы с картинками (если они большие)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.ico
+*.webp
+*.svg
+
+# Видео
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.mkv
+
+# Аудио
+*.mp3
+*.wav
+*.aac
+*.flac
+*.ogg
+*.m4a
+
+# ============================================
+# КОНЕЦ
+# ============================================
