@@ -6,7 +6,7 @@ import os
 # ============================================
 
 # Токен берем из переменных окружения
-BOT_TOKEN = os.environ.get('8836224811:AAE3TQ6A_MGUC3-mrEWDWGhgfaAG0l3U5Z4')
+BOT_TOKEN = os.environ.get('8836224811:AAH352CQXMaaoNmqNqir8GOSIa0qKGd56lY')
 
 if not BOT_TOKEN:
     raise ValueError("❌ BOT_TOKEN не найден в переменных окружения!")
