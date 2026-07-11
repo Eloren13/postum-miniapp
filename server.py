@@ -278,16 +278,20 @@ def check_achievements():
     return jsonify({'unlocked': unlocked})
 
 # ============================================
-# 4. ЗАПУСК БОТА (ЗАПУСКАЕТСЯ СРАЗУ ПРИ ЗАГРУЗКЕ)
+# 4. ЗАПУСК БОТА С ПРАВИЛЬНЫМ EVENT LOOP
 # ============================================
 
 def run_bot():
-    """Запуск Telegram бота"""
+    """Запуск Telegram бота с правильным event loop для Python 3.14"""
     try:
         from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup
         from telegram.ext import Application, CommandHandler, ContextTypes
         
         print("🤖 Запуск Telegram бота...")
+        
+        # Создаем новый event loop для этого потока
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         
         async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             user = update.effective_user
@@ -322,7 +326,14 @@ def run_bot():
         bot_app.add_handler(CommandHandler("play", start))
         
         print("🚀 Бот запущен и готов к работе!")
-        bot_app.run_polling(allowed_updates=[])
+        
+        # Запускаем бота в созданном event loop
+        loop.run_until_complete(bot_app.initialize())
+        loop.run_until_complete(bot_app.start())
+        loop.run_until_complete(bot_app.updater.start_polling())
+        
+        # Держим бота запущенным
+        loop.run_forever()
         
     except Exception as e:
         print(f"❌ Ошибка при запуске бота: {e}")
@@ -330,7 +341,7 @@ def run_bot():
         traceback.print_exc()
 
 # ============================================
-# 5. ЗАПУСКАЕМ БОТА В ФОНОВОМ ПОТОКЕ (СРАЗУ)
+# 5. ЗАПУСКАЕМ БОТА В ФОНОВОМ ПОТОКЕ
 # ============================================
 
 print("🔄 Запуск бота в фоновом потоке...")
@@ -342,9 +353,7 @@ time.sleep(3)
 print("✅ Бот запущен!")
 
 # ============================================
-# 6. Flask приложение готово к использованию
+# 6. Flask приложение готово
 # ============================================
 
 print("🌐 Flask приложение готово!")
-
-# Это нужно для Gunicorn - он будет использовать объект app
