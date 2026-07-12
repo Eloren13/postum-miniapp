@@ -9,63 +9,96 @@
 </head>
 <body>
     <div id="app">
-        <!-- Главный экран -->
+        <!-- ===== ГЛАВНЫЙ ЭКРАН ===== -->
         <div id="main-screen" class="screen active">
+            <!-- Хедер -->
             <div class="header">
                 <div class="header-top">
-                    <span class="logo">🎨</span>
-                    <h1>Арт-Квест</h1>
+                    <div class="logo-wrapper">
+                        <span class="logo-icon">🎨</span>
+                        <span class="logo-text">Арт-Квест</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="icon-btn" onclick="showStats()">📊</button>
+                    </div>
                 </div>
                 <div class="user-stats">
-                    <span class="stat">⭐ <span id="user-score">0</span></span>
-                    <span class="stat">🏆 <span id="user-level">1</span></span>
-                    <span class="stat">⚡ <span id="user-xp">0</span> XP</span>
+                    <div class="stat-item">
+                        <span class="stat-icon">⭐</span>
+                        <span class="stat-value" id="user-score">0</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🏆</span>
+                        <span class="stat-value" id="user-level">1</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-icon">⚡</span>
+                        <span class="stat-value" id="user-xp">0</span>
+                    </div>
                 </div>
             </div>
-            
+
+            <!-- Приветствие -->
+            <div class="greeting">
+                <h2>👋 Добро пожаловать!</h2>
+                <p>Изучай искусство, литературу и историю в игровом формате</p>
+            </div>
+
+            <!-- Основное меню -->
             <div class="menu-grid">
-                <div class="menu-card" onclick="startQuiz()">
+                <div class="menu-card primary" onclick="startQuiz()">
                     <div class="menu-icon">🎯</div>
                     <div class="menu-label">Викторина</div>
+                    <div class="menu-badge">10 вопросов</div>
                 </div>
                 <div class="menu-card" onclick="showLearning()">
                     <div class="menu-icon">📖</div>
                     <div class="menu-label">Обучение</div>
+                    <div class="menu-badge">Статьи</div>
                 </div>
                 <div class="menu-card" onclick="showDisciplines()">
                     <div class="menu-icon">📚</div>
                     <div class="menu-label">Дисциплины</div>
-                </div>
-                <div class="menu-card" onclick="showStats()">
-                    <div class="menu-icon">📊</div>
-                    <div class="menu-label">Прогресс</div>
+                    <div class="menu-badge">9 тем</div>
                 </div>
                 <div class="menu-card" onclick="showAchievements()">
                     <div class="menu-icon">🏅</div>
                     <div class="menu-label">Достижения</div>
+                    <div class="menu-badge">Награды</div>
                 </div>
             </div>
-            
-            <div class="daily-section">
+
+            <!-- Ежедневный вызов -->
+            <div class="daily-card">
                 <div class="daily-header">
-                    <span>🔥 Ежедневный вызов</span>
-                    <span class="streak" id="daily-streak">Серия: 0 дней</span>
+                    <div>
+                        <span class="daily-icon">🔥</span>
+                        <span class="daily-title">Ежедневный вызов</span>
+                    </div>
+                    <span class="daily-streak" id="daily-streak">Серия: 0</span>
                 </div>
-                <p class="daily-question" id="daily-question">Загрузка...</p>
+                <p class="daily-question" id="daily-question">Загрузка вопроса...</p>
                 <button class="daily-btn" onclick="startDaily()">Ответить на вызов</button>
             </div>
-            
-            <div class="quick-topics">
-                <h3>⚡ Быстрый старт</h3>
+
+            <!-- Быстрые темы -->
+            <div class="quick-section">
+                <div class="section-header">
+                    <h3>⚡ Быстрый старт</h3>
+                    <span class="see-all">Все темы →</span>
+                </div>
                 <div id="quick-topics-container" class="topics-scroll"></div>
             </div>
         </div>
-        
-        <!-- Экран викторины -->
+
+        <!-- ===== ЭКРАН ВИКТОРИНЫ ===== -->
         <div id="quiz-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="goHome()">←</button>
+                <button class="back-btn" onclick="goHome()">‹</button>
                 <h2>🎯 Викторина</h2>
+                <div style="width:40px;"></div>
             </div>
             <div class="quiz-filters">
                 <select id="quiz-discipline" onchange="updateQuizTopics()">
@@ -75,105 +108,122 @@
                     <option value="all">Все темы</option>
                 </select>
                 <select id="quiz-difficulty">
-                    <option value="all">Любая</option>
+                    <option value="all">Любая сложность</option>
                     <option value="1">⭐ Легкая</option>
                     <option value="2">⭐⭐ Средняя</option>
                     <option value="3">⭐⭐⭐ Сложная</option>
                 </select>
-                <button class="start-btn" onclick="startQuiz()">Начать</button>
+                <button class="start-btn" onclick="startQuiz()">🚀 Начать викторину</button>
             </div>
             <div id="quiz-container"></div>
         </div>
-        
-        <!-- Экран вопроса -->
+
+        <!-- ===== ЭКРАН ВОПРОСА ===== -->
         <div id="question-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="goHome()">←</button>
+                <button class="back-btn" onclick="goHome()">‹</button>
                 <span id="question-counter" class="question-counter">1/10</span>
+                <div style="width:40px;"></div>
             </div>
             <div class="progress-container">
-                <div class="progress-bar">
+                <div class="progress-track">
                     <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
                 </div>
             </div>
             <div class="question-card">
-                <span id="question-topic" class="question-topic">Тема</span>
+                <div class="question-meta">
+                    <span id="question-topic" class="question-topic">📚 Тема</span>
+                    <span id="question-difficulty" class="question-difficulty">⭐</span>
+                </div>
                 <h2 id="question-text" class="question-text">Вопрос загружается...</h2>
                 <div id="options-container" class="options-grid"></div>
                 <div id="question-explanation" class="explanation" style="display:none;"></div>
             </div>
         </div>
-        
-        <!-- Экран результата -->
+
+        <!-- ===== ЭКРАН РЕЗУЛЬТАТА ===== -->
         <div id="result-screen" class="screen">
             <div class="result-card">
                 <div id="result-emoji" class="result-emoji">🏆</div>
                 <h2 id="result-title" class="result-title">Отличный результат!</h2>
                 <div id="result-stats" class="result-stats"></div>
-                <button class="result-btn" onclick="startQuiz()">🔄 Ещё раз</button>
+                <button class="result-btn primary" onclick="startQuiz()">🔄 Ещё раз</button>
                 <button class="result-btn secondary" onclick="goHome()">🏠 На главную</button>
             </div>
         </div>
-        
-        <!-- Остальные экраны -->
+
+        <!-- ===== ЭКРАН ОБУЧЕНИЯ ===== -->
         <div id="learning-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="goHome()">←</button>
+                <button class="back-btn" onclick="goHome()">‹</button>
                 <h2>📖 Обучение</h2>
+                <div style="width:40px;"></div>
             </div>
             <div id="learning-container" class="learning-list"></div>
         </div>
-        
+
+        <!-- ===== ЭКРАН МАТЕРИАЛА ===== -->
         <div id="material-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="showLearning()">←</button>
+                <button class="back-btn" onclick="showLearning()">‹</button>
                 <h2 id="material-title">Материал</h2>
+                <div style="width:40px;"></div>
             </div>
             <div id="material-content" class="material-content"></div>
             <button class="start-btn" onclick="startQuizFromMaterial()">🎯 Проверить знания</button>
         </div>
-        
+
+        <!-- ===== ЭКРАН ДИСЦИПЛИН ===== -->
         <div id="disciplines-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="goHome()">←</button>
+                <button class="back-btn" onclick="goHome()">‹</button>
                 <h2>📚 Дисциплины</h2>
+                <div style="width:40px;"></div>
             </div>
             <div id="disciplines-container" class="disciplines-grid"></div>
         </div>
-        
+
+        <!-- ===== ЭКРАН РАЗДЕЛОВ ===== -->
         <div id="sections-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="showDisciplines()">←</button>
+                <button class="back-btn" onclick="showDisciplines()">‹</button>
                 <h2 id="sections-title">Разделы</h2>
+                <div style="width:40px;"></div>
             </div>
             <div id="sections-container" class="sections-grid"></div>
         </div>
-        
+
+        <!-- ===== ЭКРАН ТЕМ ===== -->
         <div id="topics-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="showSections()">←</button>
+                <button class="back-btn" onclick="showSections()">‹</button>
                 <h2 id="topics-title">Темы</h2>
+                <div style="width:40px;"></div>
             </div>
             <div id="topics-container" class="topics-grid"></div>
         </div>
-        
+
+        <!-- ===== ЭКРАН СТАТИСТИКИ ===== -->
         <div id="stats-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="goHome()">←</button>
+                <button class="back-btn" onclick="goHome()">‹</button>
                 <h2>📊 Мой прогресс</h2>
+                <div style="width:40px;"></div>
             </div>
             <div id="stats-container" class="stats-card"></div>
         </div>
-        
+
+        <!-- ===== ЭКРАН ДОСТИЖЕНИЙ ===== -->
         <div id="achievements-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="goHome()">←</button>
+                <button class="back-btn" onclick="goHome()">‹</button>
                 <h2>🏅 Достижения</h2>
+                <div style="width:40px;"></div>
             </div>
             <div id="achievements-container" class="achievements-list"></div>
         </div>
     </div>
-    
+
     <script src="script.js"></script>
 </body>
 </html>
