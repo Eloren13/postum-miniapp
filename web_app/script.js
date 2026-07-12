@@ -1,17 +1,19 @@
 // web_app/script.js
-let tg = window.Telegram.WebApp;
-let currentState = {
+const tg = window.Telegram.WebApp;
+const API_BASE = '';
+
+// ===== СОСТОЯНИЕ =====
+let state = {
     questions: [],
     currentIndex: 0,
     score: 0,
     correctCount: 0,
-    currentTopic: null,
-    currentDiscipline: null,
     totalQuestions: 10,
+    currentTopic: null,
     filters: { discipline: 'all', topic: 'all', difficulty: 'all' }
 };
 
-let userData = {
+let user = {
     id: null,
     score: 0,
     level: 1,
@@ -22,15 +24,12 @@ let userData = {
     achievements: []
 };
 
-// ===== Инициализация =====
-document.addEventListener('DOMContentLoaded', function() {
+// ===== ИНИЦИАЛИЗАЦИЯ =====
+document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
     
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        userData.id = tg.initDataUnsafe.user.id;
-        document.querySelector('.user-stats').insertAdjacentHTML('beforebegin',
-            `<div style="text-align:center;font-size:14px;color:#aaa;margin-bottom:8px;">👋 ${tg.initDataUnsafe.user.first_name || 'Игрок'}</div>`
-        );
+    if (tg.initDataUnsafe?.user) {
+        user.id = tg.initDataUnsafe.user.id;
     }
     
     loadUserData();
@@ -38,25 +37,24 @@ document.addEventListener('DOMContentLoaded', function() {
     loadQuickTopics();
     loadDisciplines();
     loadAchievements();
-    setupQuizFilters();
+    setupFilters();
 });
 
 // ===== API =====
-const API_BASE = '';
-async function apiCall(endpoint, options = {}) {
+async function api(endpoint, options = {}) {
     try {
-        const response = await fetch(`${API_BASE}${endpoint}`, options);
-        return await response.json();
-    } catch (error) {
-        console.error('API Error:', error);
+        const res = await fetch(`${API_BASE}${endpoint}`, options);
+        return await res.json();
+    } catch (e) {
+        console.error('API Error:', e);
         return null;
     }
 }
 
-// ===== Навигация =====
-function showScreen(screenId) {
+// ===== НАВИГАЦИЯ =====
+function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
+    document.getElementById(id).classList.add('active');
 }
 
 function goHome() {
@@ -64,44 +62,43 @@ function goHome() {
     loadUserData();
 }
 
-// ===== Данные пользователя =====
+// ===== ПОЛЬЗОВАТЕЛЬ =====
 function loadUserData() {
     const saved = localStorage.getItem('art_quest_user');
     if (saved) {
-        const data = JSON.parse(saved);
-        userData = { ...userData, ...data };
+        user = { ...user, ...JSON.parse(saved) };
         updateUI();
     }
 }
 
-function saveUserData() {
-    localStorage.setItem('art_quest_user', JSON.stringify(userData));
+function saveUser() {
+    localStorage.setItem('art_quest_user', JSON.stringify(user));
     updateUI();
 }
 
 function updateUI() {
-    document.getElementById('user-score').textContent = userData.score || 0;
-    document.getElementById('user-level').textContent = userData.level || 1;
-    document.getElementById('user-xp').textContent = userData.xp || 0;
+    document.getElementById('user-score').textContent = user.score || 0;
+    document.getElementById('user-level').textContent = user.level || 1;
+    document.getElementById('user-xp').textContent = user.xp || 0;
 }
 
-// ===== Ежедневный вызов =====
+// ===== ЕЖЕДНЕВНЫЙ ВЫЗОВ =====
 async function loadDailyQuestion() {
-    const data = await apiCall('/api/daily');
-    if (data && data.question) {
+    const data = await api('/api/daily');
+    if (data?.question) {
         document.getElementById('daily-question').textContent = data.question;
     }
-    document.getElementById('daily-streak').textContent = `🔥 Серия: ${userData.daily_streak || 0} дней`;
+    document.getElementById('daily-streak').textContent = `Серия: ${user.daily_streak || 0}`;
 }
 
 function startDaily() {
     startQuiz();
 }
 
-// ===== Быстрые темы =====
+// ===== БЫСТРЫЕ ТЕМЫ =====
 async function loadQuickTopics() {
-    const data = await apiCall('/api/topics/quick');
-    if (data && data.topics) {
+    const data = await api('/api/topics/quick');
+    if (data?.topics) {
         const container = document.getElementById('quick-topics-container');
         container.innerHTML = data.topics.map(t =>
             `<button class="quick-topic-btn" onclick="startTopicQuiz(${t.id})">${t.icon || '📚'} ${t.name}</button>`
@@ -109,48 +106,16 @@ async function loadQuickTopics() {
     }
 }
 
-// ===== Дисциплины =====
+// ===== ДИСЦИПЛИНЫ =====
 async function loadDisciplines() {
-    const data = await apiCall('/api/disciplines');
+    const data = await api('/api/disciplines');
     if (data) {
         const container = document.getElementById('disciplines-container');
         container.innerHTML = data.map(d =>
-            `<div class="discipline-card" onclick="showSections(${d.id})" style="border-color: ${d.color || 'transparent'}">
+            `<div class="discipline-card" onclick="showSections(${d.id})">
                 <span class="icon">${d.icon || '📚'}</span>
                 <div class="name">${d.name}</div>
                 <div class="desc">${d.description || ''}</div>
-            </div>`
-        ).join('');
-    }
-}
-
-async function showSections(disciplineId) {
-    currentState.currentDiscipline = disciplineId;
-    const data = await apiCall(`/api/sections/${disciplineId}`);
-    if (data) {
-        showScreen('sections-screen');
-        document.getElementById('sections-title').textContent = data.discipline_name || 'Разделы';
-        const container = document.getElementById('sections-container');
-        container.innerHTML = data.sections.map(s =>
-            `<div class="section-card" onclick="showTopics(${s.id})">
-                <div class="name">${s.name}</div>
-                <div class="desc">${s.description || ''}</div>
-            </div>`
-        ).join('');
-    }
-}
-
-async function showTopics(sectionId) {
-    const data = await apiCall(`/api/topics/${sectionId}`);
-    if (data) {
-        showScreen('topics-screen');
-        document.getElementById('topics-title').textContent = data.section_name || 'Темы';
-        const container = document.getElementById('topics-container');
-        container.innerHTML = data.topics.map(t =>
-            `<div class="topic-card" onclick="startTopicQuiz(${t.id})">
-                <div class="name">${t.name}</div>
-                <div class="desc">${t.description || ''}</div>
-                <div style="font-size:11px;color:#888;margin-top:4px;">${t.question_count || 0} вопросов</div>
             </div>`
         ).join('');
     }
@@ -161,53 +126,79 @@ function showDisciplines() {
     loadDisciplines();
 }
 
-// ===== Обучение =====
-function showLearning() {
-    showScreen('learning-screen');
-    loadLearningMaterials();
-}
-
-async function loadLearningMaterials() {
-    const data = await apiCall('/api/learning');
+async function showSections(id) {
+    const data = await api(`/api/sections/${id}`);
     if (data) {
-        const container = document.getElementById('learning-container');
-        container.innerHTML = data.map(item =>
-            `<div class="learning-item" onclick="showMaterial(${item.id})">
-                <div class="title">${item.title}</div>
-                <div class="description">${item.description || ''}</div>
+        showScreen('sections-screen');
+        document.getElementById('sections-title').textContent = data.discipline_name || 'Разделы';
+        document.getElementById('sections-container').innerHTML = data.sections.map(s =>
+            `<div class="section-card" onclick="showTopics(${s.id})">
+                <div class="name">${s.name}</div>
+                <div class="desc">${s.description || ''}</div>
             </div>`
         ).join('');
     }
 }
 
-async function showMaterial(materialId) {
-    const data = await apiCall(`/api/material/${materialId}`);
+async function showTopics(id) {
+    const data = await api(`/api/topics/${id}`);
+    if (data) {
+        showScreen('topics-screen');
+        document.getElementById('topics-title').textContent = data.section_name || 'Темы';
+        document.getElementById('topics-container').innerHTML = data.topics.map(t =>
+            `<div class="topic-card" onclick="startTopicQuiz(${t.id})">
+                <div class="name">${t.name}</div>
+                <div class="desc">${t.description || ''}</div>
+                <div class="count">${t.question_count || 0} вопросов</div>
+            </div>`
+        ).join('');
+    }
+}
+
+// ===== ОБУЧЕНИЕ =====
+function showLearning() {
+    showScreen('learning-screen');
+    loadLearning();
+}
+
+async function loadLearning() {
+    const data = await api('/api/learning');
+    if (data) {
+        document.getElementById('learning-container').innerHTML = data.map(item =>
+            `<div class="learning-item" onclick="showMaterial(${item.id})">
+                <div class="title">${item.title}</div>
+                <div class="desc">${item.description || ''}</div>
+            </div>`
+        ).join('');
+    }
+}
+
+async function showMaterial(id) {
+    const data = await api(`/api/material/${id}`);
     if (data) {
         showScreen('material-screen');
         document.getElementById('material-title').textContent = data.title;
         document.getElementById('material-content').innerHTML = data.content.replace(/\n/g, '<br>');
-        currentState.currentTopic = data.topic_id;
+        state.currentTopic = data.topic_id;
     }
 }
 
 function startQuizFromMaterial() {
-    if (currentState.currentTopic) {
-        startTopicQuiz(currentState.currentTopic);
-    }
+    if (state.currentTopic) startTopicQuiz(state.currentTopic);
 }
 
-// ===== Викторина =====
+// ===== ВИКТОРИНА =====
 function showQuiz() {
     showScreen('quiz-screen');
-    setupQuizFilters();
+    setupFilters();
 }
 
-async function setupQuizFilters() {
-    const disciplines = await apiCall('/api/disciplines');
-    if (disciplines) {
+async function setupFilters() {
+    const data = await api('/api/disciplines');
+    if (data) {
         const select = document.getElementById('quiz-discipline');
         select.innerHTML = '<option value="all">Все дисциплины</option>' +
-            disciplines.map(d => `<option value="${d.id}">${d.icon || ''} ${d.name}</option>`).join('');
+            data.map(d => `<option value="${d.id}">${d.icon || ''} ${d.name}</option>`).join('');
     }
 }
 
@@ -215,159 +206,150 @@ async function updateQuizTopics() {
     const disciplineId = document.getElementById('quiz-discipline').value;
     const select = document.getElementById('quiz-topic');
     select.innerHTML = '<option value="all">Все темы</option>';
-    
     if (disciplineId !== 'all') {
-        const data = await apiCall(`/api/discipline-topics/${disciplineId}`);
-        if (data) {
-            data.forEach(t => {
-                select.innerHTML += `<option value="${t.id}">${t.name}</option>`;
-            });
-        }
+        const data = await api(`/api/discipline-topics/${disciplineId}`);
+        if (data) data.forEach(t => {
+            select.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+        });
     }
 }
 
 async function startQuiz() {
-    currentState.filters = {
+    state.filters = {
         discipline: document.getElementById('quiz-discipline').value,
         topic: document.getElementById('quiz-topic').value,
         difficulty: document.getElementById('quiz-difficulty').value
     };
     
     let url = '/api/questions/random?limit=10';
-    if (currentState.filters.topic !== 'all') url += `&topic=${currentState.filters.topic}`;
-    if (currentState.filters.discipline !== 'all') url += `&discipline=${currentState.filters.discipline}`;
-    if (currentState.filters.difficulty !== 'all') url += `&difficulty=${currentState.filters.difficulty}`;
+    if (state.filters.topic !== 'all') url += `&topic=${state.filters.topic}`;
+    if (state.filters.discipline !== 'all') url += `&discipline=${state.filters.discipline}`;
+    if (state.filters.difficulty !== 'all') url += `&difficulty=${state.filters.difficulty}`;
     
-    const data = await apiCall(url);
-    if (data && data.length > 0) {
-        currentState.questions = data;
-        currentState.currentIndex = 0;
-        currentState.score = 0;
-        currentState.correctCount = 0;
+    const data = await api(url);
+    if (data?.length) {
+        state.questions = data;
+        state.currentIndex = 0;
+        state.score = 0;
+        state.correctCount = 0;
         showScreen('question-screen');
         showQuestion();
     } else {
-        alert('К сожалению, вопросов по выбранным критериям не найдено.');
+        alert('Вопросов по выбранным критериям не найдено.');
     }
 }
 
-function startTopicQuiz(topicId) {
-    currentState.currentTopic = topicId;
-    apiCall(`/api/questions/topic/${topicId}?limit=10`)
-        .then(data => {
-            if (data && data.length > 0) {
-                currentState.questions = data;
-                currentState.currentIndex = 0;
-                currentState.score = 0;
-                currentState.correctCount = 0;
-                showScreen('question-screen');
-                showQuestion();
-            } else {
-                alert('Вопросов по этой теме пока нет.');
-            }
-        });
+function startTopicQuiz(id) {
+    api(`/api/questions/topic/${id}?limit=10`).then(data => {
+        if (data?.length) {
+            state.questions = data;
+            state.currentIndex = 0;
+            state.score = 0;
+            state.correctCount = 0;
+            showScreen('question-screen');
+            showQuestion();
+        } else {
+            alert('Вопросов по этой теме пока нет.');
+        }
+    });
 }
 
 function showQuestion() {
-    if (currentState.currentIndex >= currentState.questions.length) {
+    if (state.currentIndex >= state.questions.length) {
         showResult();
         return;
     }
     
-    const q = currentState.questions[currentState.currentIndex];
-    document.getElementById('question-counter').textContent = `${currentState.currentIndex + 1}/${currentState.questions.length}`;
-    document.getElementById('progress-fill').style.width = `${((currentState.currentIndex + 1) / currentState.questions.length) * 100}%`;
+    const q = state.questions[state.currentIndex];
+    document.getElementById('question-counter').textContent = `${state.currentIndex + 1}/${state.questions.length}`;
+    document.getElementById('progress-fill').style.width = `${((state.currentIndex + 1) / state.questions.length) * 100}%`;
     document.getElementById('question-text').textContent = q.question;
-    document.getElementById('question-topic').textContent = q.topic_name || '';
+    document.getElementById('question-topic').textContent = `📚 ${q.topic_name || 'Тема'}`;
     document.getElementById('question-explanation').style.display = 'none';
     
     const container = document.getElementById('options-container');
     container.innerHTML = '';
-    
-    const options = JSON.parse(q.options);
-    options.forEach((option, index) => {
+    JSON.parse(q.options).forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
-        btn.textContent = option;
-        btn.dataset.index = index;
-        btn.onclick = () => selectAnswer(index, q.correct_answer);
+        btn.textContent = opt;
+        btn.onclick = () => selectAnswer(i, q.correct_answer);
         container.appendChild(btn);
     });
 }
 
 function selectAnswer(selected, correct) {
-    const buttons = document.querySelectorAll('.option-btn');
-    buttons.forEach((btn, index) => {
-        btn.disabled = true;
-        if (index === correct) btn.classList.add('correct');
-        if (index === selected && selected !== correct) btn.classList.add('wrong');
+    const btns = document.querySelectorAll('.option-btn');
+    btns.forEach((b, i) => {
+        b.disabled = true;
+        if (i === correct) b.classList.add('correct');
+        if (i === selected && selected !== correct) b.classList.add('wrong');
     });
     
-    const q = currentState.questions[currentState.currentIndex];
+    const q = state.questions[state.currentIndex];
     const isCorrect = selected === correct;
     
     if (isCorrect) {
-        currentState.score += 10;
-        currentState.correctCount++;
-        userData.correct_answers = (userData.correct_answers || 0) + 1;
-        userData.xp = (userData.xp || 0) + 15;
+        state.score += 10;
+        state.correctCount++;
+        user.correct_answers = (user.correct_answers || 0) + 1;
+        user.xp = (user.xp || 0) + 15;
     }
-    userData.total_answers = (userData.total_answers || 0) + 1;
-    saveUserData();
+    user.total_answers = (user.total_answers || 0) + 1;
+    saveUser();
     
     if (q.explanation) {
-        const expl = document.getElementById('question-explanation');
-        expl.style.display = 'block';
-        expl.textContent = '💡 ' + q.explanation;
+        const el = document.getElementById('question-explanation');
+        el.style.display = 'block';
+        el.textContent = '💡 ' + q.explanation;
     }
     
     saveProgress(q.id, isCorrect);
     
     setTimeout(() => {
-        currentState.currentIndex++;
+        state.currentIndex++;
         showQuestion();
     }, 3000);
 }
 
 function showResult() {
     showScreen('result-screen');
-    const total = currentState.questions.length;
-    const correct = currentState.correctCount;
-    const percentage = Math.round((correct / total) * 100);
+    const total = state.questions.length;
+    const correct = state.correctCount;
+    const pct = Math.round((correct / total) * 100);
     
     let emoji = '📚', title = 'Хороший результат!';
-    if (percentage >= 90) { emoji = '🏆'; title = 'Блестяще! Вы — эрудит!'; }
-    else if (percentage >= 70) { emoji = '⭐'; title = 'Отлично! Продолжайте!'; }
-    else if (percentage >= 50) { emoji = '📖'; title = 'Неплохо! Почитайте материалы.'; }
-    else { emoji = '💪'; title = 'Ничего страшного! Учитесь дальше.'; }
+    if (pct >= 90) { emoji = '🏆'; title = 'Блестяще! Вы — эрудит!'; }
+    else if (pct >= 70) { emoji = '⭐'; title = 'Отлично! Продолжайте!'; }
+    else if (pct >= 50) { emoji = '📖'; title = 'Неплохо! Учитесь дальше.'; }
+    else { emoji = '💪'; title = 'Ничего страшного! Попробуйте снова.'; }
     
     document.getElementById('result-emoji').textContent = emoji;
     document.getElementById('result-title').textContent = title;
     document.getElementById('result-stats').innerHTML = `
-        <div class="stat-item"><span class="label">✅ Правильных ответов</span><span class="value">${correct}/${total}</span></div>
-        <div class="stat-item"><span class="label">🎯 Процент</span><span class="value">${percentage}%</span></div>
-        <div class="stat-item"><span class="label">⭐ Набрано очков</span><span class="value">${currentState.score}</span></div>
-        <div class="stat-item"><span class="label">⚡ Заработано XP</span><span class="value">+${correct * 15}</span></div>
+        <div class="stat-row"><span class="label">✅ Правильных ответов</span><span class="value">${correct}/${total}</span></div>
+        <div class="stat-row"><span class="label">🎯 Точность</span><span class="value">${pct}%</span></div>
+        <div class="stat-row"><span class="label">⭐ Заработано очков</span><span class="value">${state.score}</span></div>
+        <div class="stat-row"><span class="label">⚡ Получено XP</span><span class="value">+${correct * 15}</span></div>
     `;
     
-    userData.score = (userData.score || 0) + currentState.score;
-    userData.xp = (userData.xp || 0) + correct * 15;
-    userData.level = Math.floor(userData.xp / 100) + 1;
-    saveUserData();
+    user.score = (user.score || 0) + state.score;
+    user.xp = (user.xp || 0) + correct * 15;
+    user.level = Math.floor(user.xp / 100) + 1;
+    saveUser();
     checkAchievements();
 }
 
-// ===== Достижения =====
+// ===== ДОСТИЖЕНИЯ =====
 function showAchievements() {
     showScreen('achievements-screen');
     loadAchievements();
 }
 
 async function loadAchievements() {
-    const data = await apiCall('/api/achievements');
+    const data = await api('/api/achievements');
     if (data) {
-        const container = document.getElementById('achievements-container');
-        container.innerHTML = data.map(a =>
+        document.getElementById('achievements-container').innerHTML = data.map(a =>
             `<div class="achievement ${a.unlocked ? 'unlocked' : 'locked'}">
                 <span class="icon">${a.icon || '🏅'}</span>
                 <div class="info">
@@ -380,38 +362,36 @@ async function loadAchievements() {
 }
 
 async function checkAchievements() {
-    const data = await apiCall('/api/check-achievements', {
+    const data = await api('/api/check-achievements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
+        body: JSON.stringify(user)
     });
-    if (data && data.unlocked && data.unlocked.length > 0) {
-        loadAchievements();
-    }
+    if (data?.unlocked?.length) loadAchievements();
 }
 
-// ===== Статистика =====
+// ===== СТАТИСТИКА =====
 function showStats() {
     showScreen('stats-screen');
-    const container = document.getElementById('stats-container');
-    const accuracy = userData.total_answers ? Math.round((userData.correct_answers / userData.total_answers) * 100) : 0;
-    container.innerHTML = `
-        <div class="stat-item"><span class="label">🏆 Всего очков</span><span class="value">${userData.score || 0}</span></div>
-        <div class="stat-item"><span class="label">📈 Уровень</span><span class="value">${userData.level || 1}</span></div>
-        <div class="stat-item"><span class="label">⚡ Опыт (XP)</span><span class="value">${userData.xp || 0}</span></div>
-        <div class="stat-item"><span class="label">✅ Правильных ответов</span><span class="value">${userData.correct_answers || 0}</span></div>
-        <div class="stat-item"><span class="label">📝 Всего ответов</span><span class="value">${userData.total_answers || 0}</span></div>
-        <div class="stat-item"><span class="label">🎯 Точность</span><span class="value">${accuracy}%</span></div>
-        <div class="stat-item"><span class="label">🔥 Серия дней</span><span class="value">${userData.daily_streak || 0}</span></div>
-        <div class="stat-item"><span class="label">🏅 Достижений</span><span class="value">${userData.achievements ? userData.achievements.length : 0}</span></div>
-    `;
+    const acc = user.total_answers ? Math.round((user.correct_answers / user.total_answers) * 100) : 0;
+    document.getElementById('stats-container').innerHTML = [
+        { label: '🏆 Всего очков', value: user.score || 0 },
+        { label: '📈 Уровень', value: user.level || 1 },
+        { label: '⚡ Опыт (XP)', value: user.xp || 0 },
+        { label: '✅ Правильных ответов', value: user.correct_answers || 0 },
+        { label: '📝 Всего ответов', value: user.total_answers || 0 },
+        { label: '🎯 Точность', value: `${acc}%` },
+        { label: '🔥 Серия дней', value: user.daily_streak || 0 }
+    ].map(s =>
+        `<div class="stat-row"><span class="label">${s.label}</span><span class="value">${s.value}</span></div>`
+    ).join('');
 }
 
-// ===== Прогресс =====
-function saveProgress(questionId, correct) {
+// ===== ПРОГРЕСС =====
+function saveProgress(qId, correct) {
     fetch('/api/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userData.id, question_id: questionId, correct: correct })
+        body: JSON.stringify({ user_id: user.id, question_id: qId, correct })
     }).catch(() => {});
 }
