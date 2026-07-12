@@ -7,115 +7,181 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #0f0c29;
-    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    background: #0a0a1a;
     min-height: 100vh;
     color: #fff;
     padding: 16px;
-    padding-bottom: 30px;
+    padding-bottom: 40px;
 }
 
 #app {
-    max-width: 480px;
+    max-width: 420px;
     margin: 0 auto;
 }
 
-/* ===== Экраны ===== */
+/* ========================================
+   ЭКРАНЫ
+   ======================================== */
 .screen {
     display: none;
-    animation: fadeIn 0.3s ease;
+    animation: slideUp 0.35s ease;
 }
 
 .screen.active {
     display: block;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== Хедер ===== */
+/* ========================================
+   ХЕДЕР
+   ======================================== */
 .header {
-    text-align: center;
-    padding: 16px 0 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    margin-bottom: 20px;
+    padding: 12px 0 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 16px;
 }
 
 .header-top {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
+}
+
+.logo-wrapper {
+    display: flex;
+    align-items: center;
     gap: 10px;
 }
 
-.header-top .logo {
-    font-size: 32px;
+.logo-icon {
+    font-size: 28px;
 }
 
-.header-top h1 {
-    font-size: 26px;
+.logo-text {
+    font-size: 22px;
     font-weight: 700;
     background: linear-gradient(135deg, #f7971e, #ffd200);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
+.icon-btn {
+    background: rgba(255,255,255,0.06);
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
 .user-stats {
     display: flex;
     justify-content: center;
-    gap: 16px;
-    margin-top: 10px;
-    font-size: 13px;
+    gap: 4px;
+    margin-top: 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    padding: 8px 4px;
 }
 
-.user-stats .stat {
-    background: rgba(255,255,255,0.06);
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: 4px 14px;
-    border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.05);
+    font-size: 14px;
     font-weight: 500;
 }
 
-/* ===== Меню ===== */
+.stat-icon {
+    font-size: 16px;
+}
+
+.stat-divider {
+    width: 1px;
+    background: rgba(255,255,255,0.06);
+}
+
+/* ========================================
+   ПРИВЕТСТВИЕ
+   ======================================== */
+.greeting {
+    margin-bottom: 20px;
+}
+
+.greeting h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.greeting p {
+    color: #888;
+    font-size: 14px;
+}
+
+/* ========================================
+   МЕНЮ
+   ======================================== */
 .menu-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
     margin-bottom: 20px;
 }
 
 .menu-card {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.06);
     border-radius: 14px;
-    padding: 16px 8px;
+    padding: 16px 12px;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
+    position: relative;
 }
 
 .menu-card:active {
     transform: scale(0.95);
 }
 
-.menu-card .menu-icon {
-    font-size: 28px;
+.menu-card.primary {
+    background: linear-gradient(135deg, rgba(247, 151, 30, 0.2), rgba(255, 210, 0, 0.05));
+    border-color: rgba(247, 151, 30, 0.2);
+}
+
+.menu-icon {
+    font-size: 30px;
     display: block;
     margin-bottom: 6px;
 }
 
-.menu-card .menu-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: #ccc;
+.menu-label {
+    font-size: 14px;
+    font-weight: 600;
 }
 
-/* ===== Ежедневный вызов ===== */
-.daily-section {
-    background: linear-gradient(135deg, rgba(247, 151, 30, 0.15), rgba(255, 210, 0, 0.05));
-    border: 1px solid rgba(247, 151, 30, 0.2);
+.menu-badge {
+    font-size: 10px;
+    color: #888;
+    margin-top: 4px;
+    background: rgba(255,255,255,0.04);
+    padding: 2px 10px;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+/* ========================================
+   ЕЖЕДНЕВНЫЙ ВЫЗОВ
+   ======================================== */
+.daily-card {
+    background: linear-gradient(135deg, rgba(247, 151, 30, 0.12), rgba(255, 210, 0, 0.04));
+    border: 1px solid rgba(247, 151, 30, 0.15);
     border-radius: 14px;
     padding: 16px;
     margin-bottom: 20px;
@@ -124,19 +190,32 @@ body {
 .daily-header {
     display: flex;
     justify-content: space-between;
-    font-size: 14px;
-    font-weight: 600;
+    align-items: center;
+    margin-bottom: 8px;
 }
 
-.daily-header .streak {
+.daily-icon {
+    font-size: 18px;
+    margin-right: 6px;
+}
+
+.daily-title {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.daily-streak {
+    font-size: 13px;
     color: #f7971e;
+    font-weight: 500;
 }
 
 .daily-question {
     font-size: 15px;
-    margin: 10px 0 14px;
     color: #ddd;
     line-height: 1.4;
+    margin-bottom: 12px;
+    padding: 8px 0;
 }
 
 .daily-btn {
@@ -156,11 +235,29 @@ body {
     transform: scale(0.97);
 }
 
-/* ===== Быстрые темы ===== */
-.quick-topics h3 {
+/* ========================================
+   БЫСТРЫЕ ТЕМЫ
+   ======================================== */
+.quick-section {
+    margin-bottom: 20px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.section-header h3 {
     font-size: 15px;
-    margin-bottom: 12px;
-    color: #aaa;
+    font-weight: 600;
+}
+
+.see-all {
+    font-size: 12px;
+    color: #888;
+    cursor: pointer;
 }
 
 .topics-scroll {
@@ -172,18 +269,18 @@ body {
 }
 
 .topics-scroll::-webkit-scrollbar {
-    height: 3px;
+    height: 2px;
 }
 
 .topics-scroll::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
     border-radius: 10px;
 }
 
 .quick-topic-btn {
     flex-shrink: 0;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.06);
     color: #fff;
     padding: 8px 16px;
     border-radius: 20px;
@@ -197,35 +294,33 @@ body {
     transform: scale(0.95);
 }
 
-/* ===== Screen Header ===== */
+/* ========================================
+   ЭКРАН ВИКТОРИНЫ
+   ======================================== */
 .screen-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 12px;
     padding-bottom: 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
     margin-bottom: 16px;
 }
 
 .screen-header h2 {
-    font-size: 20px;
-    flex: 1;
+    font-size: 18px;
+    font-weight: 600;
 }
 
 .back-btn {
     background: none;
     border: none;
-    color: #aaa;
-    font-size: 22px;
+    color: #fff;
+    font-size: 28px;
     cursor: pointer;
     padding: 0 4px;
+    line-height: 1;
 }
 
-.back-btn:hover {
-    color: #fff;
-}
-
-/* ===== Фильтры викторины ===== */
 .quiz-filters {
     display: flex;
     flex-direction: column;
@@ -234,16 +329,17 @@ body {
 }
 
 .quiz-filters select {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.06);
     color: #fff;
-    padding: 10px 12px;
+    padding: 10px 14px;
     border-radius: 10px;
     font-size: 14px;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23aaa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 12px center;
+    background-position: right 14px center;
+    cursor: pointer;
 }
 
 .quiz-filters select option {
@@ -258,7 +354,7 @@ body {
     padding: 12px;
     border-radius: 10px;
     font-weight: 700;
-    font-size: 16px;
+    font-size: 15px;
     cursor: pointer;
     transition: all 0.2s;
     margin-top: 4px;
@@ -268,15 +364,17 @@ body {
     transform: scale(0.97);
 }
 
-/* ===== Вопрос ===== */
+/* ========================================
+   ВОПРОС
+   ======================================== */
 .progress-container {
     margin-bottom: 16px;
 }
 
-.progress-bar {
+.progress-track {
     width: 100%;
     height: 4px;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.06);
     border-radius: 2px;
     overflow: hidden;
 }
@@ -290,7 +388,7 @@ body {
 
 .question-counter {
     font-size: 14px;
-    color: #aaa;
+    color: #888;
     font-weight: 500;
 }
 
@@ -300,17 +398,27 @@ body {
     padding: 20px;
 }
 
+.question-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
 .question-topic {
     font-size: 12px;
     color: #888;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
+}
+
+.question-difficulty {
+    font-size: 14px;
 }
 
 .question-text {
-    font-size: 20px;
-    margin: 12px 0 20px;
+    font-size: 19px;
     line-height: 1.5;
+    margin-bottom: 20px;
 }
 
 .options-grid {
@@ -320,8 +428,8 @@ body {
 }
 
 .option-btn {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
     color: #fff;
     padding: 14px 16px;
     border-radius: 10px;
@@ -337,32 +445,34 @@ body {
 }
 
 .option-btn.correct {
-    background: rgba(46, 213, 115, 0.2);
+    background: rgba(46, 213, 115, 0.15);
     border-color: #2ed573;
 }
 
 .option-btn.wrong {
-    background: rgba(255, 71, 87, 0.2);
+    background: rgba(255, 71, 87, 0.15);
     border-color: #ff4757;
 }
 
 .option-btn:disabled {
     cursor: not-allowed;
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 .explanation {
     margin-top: 16px;
     padding: 14px;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.03);
     border-radius: 10px;
     border-left: 3px solid #f7971e;
     font-size: 14px;
-    color: #ccc;
+    color: #aaa;
     line-height: 1.5;
 }
 
-/* ===== Результат ===== */
+/* ========================================
+   РЕЗУЛЬТАТ
+   ======================================== */
 .result-card {
     text-align: center;
     padding: 30px 20px;
@@ -373,46 +483,45 @@ body {
 .result-emoji {
     font-size: 56px;
     display: block;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 .result-title {
-    font-size: 26px;
+    font-size: 24px;
     margin-bottom: 16px;
 }
 
 .result-stats {
-    font-size: 16px;
+    font-size: 15px;
     line-height: 2.2;
-    color: #ccc;
+    color: #aaa;
     margin-bottom: 24px;
 }
 
-.result-stats .stat-item {
+.result-stats .stat-row {
     display: flex;
     justify-content: space-between;
-    padding: 2px 0;
+    padding: 4px 0;
     border-bottom: 1px solid rgba(255,255,255,0.03);
 }
 
-.result-stats .stat-item .label {
+.result-stats .stat-row .label {
     color: #888;
 }
 
-.result-stats .stat-item .value {
+.result-stats .stat-row .value {
     font-weight: 600;
+    color: #fff;
 }
 
 .result-btn {
-    background: linear-gradient(135deg, #f7971e, #ffd200);
     border: none;
-    color: #1a1a2e;
     padding: 12px 30px;
     border-radius: 25px;
     font-weight: 700;
     font-size: 15px;
     cursor: pointer;
-    margin: 4px 8px;
+    margin: 4px 6px;
     transition: all 0.2s;
 }
 
@@ -420,12 +529,19 @@ body {
     transform: scale(0.97);
 }
 
+.result-btn.primary {
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    color: #1a1a2e;
+}
+
 .result-btn.secondary {
     background: rgba(255,255,255,0.06);
     color: #fff;
 }
 
-/* ===== Дисциплины ===== */
+/* ========================================
+   ДИСЦИПЛИНЫ
+   ======================================== */
 .disciplines-grid,
 .sections-grid,
 .topics-grid {
@@ -437,10 +553,10 @@ body {
 .discipline-card,
 .section-card,
 .topic-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
     border-radius: 12px;
-    padding: 16px;
+    padding: 16px 12px;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
@@ -449,20 +565,22 @@ body {
 .discipline-card:active,
 .section-card:active,
 .topic-card:active {
-    transform: scale(0.96);
+    transform: scale(0.95);
 }
 
-.discipline-card .icon {
-    font-size: 32px;
+.discipline-card .icon,
+.section-card .icon,
+.topic-card .icon {
+    font-size: 28px;
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .discipline-card .name,
 .section-card .name,
 .topic-card .name {
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .discipline-card .desc,
@@ -470,18 +588,27 @@ body {
 .topic-card .desc {
     font-size: 11px;
     color: #888;
+    margin-top: 2px;
+}
+
+.topic-card .count {
+    font-size: 11px;
+    color: #666;
     margin-top: 4px;
 }
 
-/* ===== Обучение ===== */
+/* ========================================
+   ОБУЧЕНИЕ
+   ======================================== */
 .learning-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .learning-item {
-    background: rgba(255,255,255,0.04);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.04);
     border-radius: 12px;
     padding: 14px 16px;
     cursor: pointer;
@@ -497,10 +624,10 @@ body {
     font-size: 15px;
 }
 
-.learning-item .description {
+.learning-item .desc {
     font-size: 13px;
     color: #888;
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 .material-content {
@@ -510,32 +637,40 @@ body {
     line-height: 1.8;
     font-size: 15px;
     margin: 12px 0;
-    color: #ddd;
+    color: #ccc;
 }
 
-/* ===== Статистика ===== */
+/* ========================================
+   СТАТИСТИКА
+   ======================================== */
 .stats-card {
-    background: rgba(255,255,255,0.04);
+    background: rgba(255,255,255,0.03);
     border-radius: 12px;
-    padding: 20px;
+    padding: 16px 20px;
 }
 
-.stats-card .stat-item {
+.stats-card .stat-row {
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
     border-bottom: 1px solid rgba(255,255,255,0.03);
 }
 
-.stats-card .stat-item .label {
+.stats-card .stat-row:last-child {
+    border-bottom: none;
+}
+
+.stats-card .stat-row .label {
     color: #888;
 }
 
-.stats-card .stat-item .value {
+.stats-card .stat-row .value {
     font-weight: 600;
 }
 
-/* ===== Достижения ===== */
+/* ========================================
+   ДОСТИЖЕНИЯ
+   ======================================== */
 .achievements-list {
     display: flex;
     flex-direction: column;
@@ -546,13 +681,15 @@ body {
     display: flex;
     align-items: center;
     gap: 14px;
-    background: rgba(255,255,255,0.04);
+    background: rgba(255,255,255,0.03);
     border-radius: 12px;
     padding: 12px 16px;
 }
 
 .achievement .icon {
     font-size: 28px;
+    width: 44px;
+    text-align: center;
 }
 
 .achievement .info {
@@ -570,26 +707,24 @@ body {
 }
 
 .achievement.locked {
-    opacity: 0.4;
+    opacity: 0.35;
 }
 
 .achievement.unlocked {
     border-left: 3px solid #ffd200;
 }
 
-/* ===== Адаптив ===== */
+.achievement.unlocked .info .name {
+    color: #ffd200;
+}
+
+/* ========================================
+   АДАПТИВ
+   ======================================== */
 @media (max-width: 400px) {
     .menu-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: 1fr 1fr;
         gap: 8px;
-    }
-    
-    .menu-card {
-        padding: 12px 4px;
-    }
-    
-    .menu-card .menu-icon {
-        font-size: 22px;
     }
     
     .disciplines-grid,
@@ -603,7 +738,15 @@ body {
     }
     
     .user-stats {
-        font-size: 11px;
-        gap: 8px;
+        font-size: 12px;
+        padding: 6px 2px;
+    }
+    
+    .stat-item {
+        padding: 2px 10px;
+    }
+    
+    .result-title {
+        font-size: 20px;
     }
 }
