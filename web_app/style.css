@@ -7,17 +7,20 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-    color: #fff;
+    background: #0f0c29;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
     min-height: 100vh;
+    color: #fff;
     padding: 16px;
+    padding-bottom: 30px;
 }
 
 #app {
-    max-width: 500px;
+    max-width: 480px;
     margin: 0 auto;
 }
 
+/* ===== Экраны ===== */
 .screen {
     display: none;
     animation: fadeIn 0.3s ease;
@@ -28,48 +31,180 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Header */
+/* ===== Хедер ===== */
 .header {
     text-align: center;
-    padding: 20px 0 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 16px 0 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
     margin-bottom: 20px;
 }
 
-.header h1 {
-    font-size: 28px;
-    background: linear-gradient(45deg, #f7971e, #ffd200);
+.header-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.header-top .logo {
+    font-size: 32px;
+}
+
+.header-top h1 {
+    font-size: 26px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #f7971e, #ffd200);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-.user-info {
+.user-stats {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
+    gap: 16px;
     margin-top: 10px;
     font-size: 13px;
 }
 
-.user-info span {
+.user-stats .stat {
     background: rgba(255,255,255,0.06);
-    padding: 4px 12px;
+    padding: 4px 14px;
     border-radius: 20px;
     border: 1px solid rgba(255,255,255,0.05);
+    font-weight: 500;
 }
 
+/* ===== Меню ===== */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.menu-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 16px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.menu-card:active {
+    transform: scale(0.95);
+}
+
+.menu-card .menu-icon {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.menu-card .menu-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #ccc;
+}
+
+/* ===== Ежедневный вызов ===== */
+.daily-section {
+    background: linear-gradient(135deg, rgba(247, 151, 30, 0.15), rgba(255, 210, 0, 0.05));
+    border: 1px solid rgba(247, 151, 30, 0.2);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.daily-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.daily-header .streak {
+    color: #f7971e;
+}
+
+.daily-question {
+    font-size: 15px;
+    margin: 10px 0 14px;
+    color: #ddd;
+    line-height: 1.4;
+}
+
+.daily-btn {
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    border: none;
+    color: #1a1a2e;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.daily-btn:active {
+    transform: scale(0.97);
+}
+
+/* ===== Быстрые темы ===== */
+.quick-topics h3 {
+    font-size: 15px;
+    margin-bottom: 12px;
+    color: #aaa;
+}
+
+.topics-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.topics-scroll::-webkit-scrollbar {
+    height: 3px;
+}
+
+.topics-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+}
+
+.quick-topic-btn {
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.quick-topic-btn:active {
+    transform: scale(0.95);
+}
+
+/* ===== Screen Header ===== */
 .screen-header {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 16px;
 }
 
 .screen-header h2 {
@@ -77,198 +212,108 @@ body {
     flex: 1;
 }
 
-/* Buttons */
-.menu {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 16px 0;
-}
-
-.menu-btn {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: #fff;
-    padding: 14px 16px;
-    border-radius: 12px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-align: center;
-}
-
-.menu-btn:hover {
-    background: rgba(255,255,255,0.12);
-    transform: translateY(-1px);
-}
-
-.menu-btn:active {
-    transform: scale(0.98);
-}
-
-.menu-btn.primary {
-    background: linear-gradient(135deg, #f7971e, #ffd200);
-    color: #1a1a2e;
-    font-weight: bold;
-    border: none;
-}
-
-.small-btn {
-    background: #f7971e;
-    border: none;
-    color: #1a1a2e;
-    padding: 8px 20px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.small-btn:hover {
-    transform: scale(1.05);
-}
-
 .back-btn {
     background: none;
     border: none;
-    color: #888;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 4px 8px;
-}
-
-/* Daily Challenge */
-.daily-challenge {
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-    padding: 16px;
-    margin: 16px 0;
-}
-
-.daily-challenge h3 {
-    font-size: 15px;
-    margin-bottom: 6px;
-}
-
-.daily-challenge p {
     color: #aaa;
-    font-size: 14px;
-    margin-bottom: 10px;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0 4px;
 }
 
-/* Quick Topics */
-.quick-topics {
-    margin-top: 16px;
+.back-btn:hover {
+    color: #fff;
 }
 
-.quick-topics h3 {
-    font-size: 15px;
-    margin-bottom: 10px;
-}
-
-#quick-topics-container {
+/* ===== Фильтры викторины ===== */
+.quiz-filters {
     display: flex;
+    flex-direction: column;
     gap: 8px;
-    flex-wrap: wrap;
+    margin-bottom: 16px;
 }
 
-.quick-topic-btn {
+.quiz-filters select {
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.08);
     color: #fff;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.quick-topic-btn:hover {
-    background: rgba(255,255,255,0.12);
-}
-
-/* Disciplines Grid */
-#disciplines-container,
-#sections-container,
-#topics-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin: 12px 0;
-}
-
-.discipline-card,
-.section-card,
-.topic-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 16px;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-align: center;
-}
-
-.discipline-card:hover,
-.section-card:hover,
-.topic-card:hover {
-    background: rgba(255,255,255,0.1);
-    transform: translateY(-2px);
-}
-
-.discipline-card .icon {
-    font-size: 32px;
-    display: block;
-    margin-bottom: 6px;
-}
-
-.discipline-card .name {
-    font-weight: bold;
+    padding: 10px 12px;
+    border-radius: 10px;
     font-size: 14px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23aaa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
 }
 
-.discipline-card .desc {
-    font-size: 11px;
-    color: #888;
+.quiz-filters select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
+.start-btn {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    border: none;
+    color: #fff;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
     margin-top: 4px;
 }
 
-/* Progress Bar */
-.progress-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
+.start-btn:active {
+    transform: scale(0.97);
 }
 
-.bar {
-    flex: 1;
+/* ===== Вопрос ===== */
+.progress-container {
+    margin-bottom: 16px;
+}
+
+.progress-bar {
+    width: 100%;
     height: 4px;
     background: rgba(255,255,255,0.1);
     border-radius: 2px;
     overflow: hidden;
 }
 
-#progress-fill {
+.progress-fill {
     height: 100%;
     background: linear-gradient(90deg, #f7971e, #ffd200);
     transition: width 0.5s ease;
+    border-radius: 2px;
 }
 
-/* Question */
-#question-text {
+.question-counter {
+    font-size: 14px;
+    color: #aaa;
+    font-weight: 500;
+}
+
+.question-card {
+    background: rgba(255,255,255,0.03);
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.question-topic {
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.question-text {
     font-size: 20px;
-    margin-bottom: 16px;
+    margin: 12px 0 20px;
     line-height: 1.5;
 }
 
-#question-topic {
-    display: block;
-    margin-bottom: 8px;
-}
-
-#options-container {
+.options-grid {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -278,25 +323,26 @@ body {
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.08);
     color: #fff;
-    padding: 12px 16px;
+    padding: 14px 16px;
     border-radius: 10px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s;
     text-align: left;
-    font-size: 14px;
+    font-size: 15px;
+    line-height: 1.3;
 }
 
-.option-btn:hover:not(:disabled) {
-    background: rgba(255,255,255,0.12);
+.option-btn:active:not(:disabled) {
+    transform: scale(0.98);
 }
 
 .option-btn.correct {
-    background: rgba(46, 213, 115, 0.25);
+    background: rgba(46, 213, 115, 0.2);
     border-color: #2ed573;
 }
 
 .option-btn.wrong {
-    background: rgba(255, 71, 87, 0.25);
+    background: rgba(255, 71, 87, 0.2);
     border-color: #ff4757;
 }
 
@@ -305,78 +351,204 @@ body {
     opacity: 0.7;
 }
 
-/* Quiz Filters */
-#quiz-filters {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
+.explanation {
+    margin-top: 16px;
+    padding: 14px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    border-left: 3px solid #f7971e;
+    font-size: 14px;
+    color: #ccc;
+    line-height: 1.5;
 }
 
-#quiz-filters select {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 13px;
-}
-
-#quiz-filters select option {
-    background: #1a1a2e;
-    color: #fff;
-}
-
-/* Results */
-.result-content {
+/* ===== Результат ===== */
+.result-card {
     text-align: center;
-    padding: 30px 0;
+    padding: 30px 20px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 16px;
 }
 
-.result-content h2 {
-    font-size: 28px;
+.result-emoji {
+    font-size: 56px;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.result-title {
+    font-size: 26px;
     margin-bottom: 16px;
 }
 
-#result-stats {
+.result-stats {
     font-size: 16px;
-    line-height: 2;
-    color: #aaa;
+    line-height: 2.2;
+    color: #ccc;
     margin-bottom: 24px;
 }
 
-/* Stats */
-#stats-container {
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-    padding: 20px;
-    line-height: 2.2;
-}
-
-.stat-item {
+.result-stats .stat-item {
     display: flex;
     justify-content: space-between;
-    padding: 4px 0;
+    padding: 2px 0;
     border-bottom: 1px solid rgba(255,255,255,0.03);
 }
 
-.stat-item .label {
+.result-stats .stat-item .label {
     color: #888;
 }
 
-.stat-item .value {
-    font-weight: bold;
+.result-stats .stat-item .value {
+    font-weight: 600;
 }
 
-/* Achievements */
+.result-btn {
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    border: none;
+    color: #1a1a2e;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    margin: 4px 8px;
+    transition: all 0.2s;
+}
+
+.result-btn:active {
+    transform: scale(0.97);
+}
+
+.result-btn.secondary {
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+}
+
+/* ===== Дисциплины ===== */
+.disciplines-grid,
+.sections-grid,
+.topics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.discipline-card,
+.section-card,
+.topic-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.discipline-card:active,
+.section-card:active,
+.topic-card:active {
+    transform: scale(0.96);
+}
+
+.discipline-card .icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.discipline-card .name,
+.section-card .name,
+.topic-card .name {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.discipline-card .desc,
+.section-card .desc,
+.topic-card .desc {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+}
+
+/* ===== Обучение ===== */
+.learning-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.learning-item {
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.learning-item:active {
+    transform: scale(0.98);
+}
+
+.learning-item .title {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.learning-item .description {
+    font-size: 13px;
+    color: #888;
+    margin-top: 4px;
+}
+
+.material-content {
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    padding: 16px;
+    line-height: 1.8;
+    font-size: 15px;
+    margin: 12px 0;
+    color: #ddd;
+}
+
+/* ===== Статистика ===== */
+.stats-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.stats-card .stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.stats-card .stat-item .label {
+    color: #888;
+}
+
+.stats-card .stat-item .value {
+    font-weight: 600;
+}
+
+/* ===== Достижения ===== */
+.achievements-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .achievement {
     display: flex;
     align-items: center;
-    gap: 12px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
+    gap: 14px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
     padding: 12px 16px;
-    margin-bottom: 8px;
 }
 
 .achievement .icon {
@@ -388,7 +560,7 @@ body {
 }
 
 .achievement .info .name {
-    font-weight: bold;
+    font-weight: 600;
     font-size: 14px;
 }
 
@@ -405,58 +577,33 @@ body {
     border-left: 3px solid #ffd200;
 }
 
-/* Learning Materials */
-#learning-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.learning-item {
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.learning-item:hover {
-    background: rgba(255,255,255,0.09);
-}
-
-.learning-item .title {
-    font-weight: bold;
-    font-size: 15px;
-}
-
-.learning-item .description {
-    font-size: 13px;
-    color: #888;
-    margin-top: 4px;
-}
-
-#material-content {
-    line-height: 1.8;
-    font-size: 15px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    padding: 16px;
-    margin: 12px 0;
-}
-
-/* Responsive */
+/* ===== Адаптив ===== */
 @media (max-width: 400px) {
-    #disciplines-container,
-    #sections-container,
-    #topics-container {
+    .menu-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    
+    .menu-card {
+        padding: 12px 4px;
+    }
+    
+    .menu-card .menu-icon {
+        font-size: 22px;
+    }
+    
+    .disciplines-grid,
+    .sections-grid,
+    .topics-grid {
         grid-template-columns: 1fr;
     }
     
-    .user-info {
-        font-size: 11px;
+    .question-text {
+        font-size: 17px;
     }
     
-    #question-text {
-        font-size: 17px;
+    .user-stats {
+        font-size: 11px;
+        gap: 8px;
     }
 }
