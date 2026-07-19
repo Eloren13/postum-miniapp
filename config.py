@@ -10,6 +10,13 @@ import os
 
 BOT_TOKEN = os.environ.get('8829424127:AAFQ_TCy80tMje3O-Jr2OVmKKpWHCOAgSIk')
 
+
+if not BOT_TOKEN:
+    raise RuntimeError(
+        "BOT_TOKEN не задан! Установите переменную окружения BOT_TOKEN "
+        "(в настройках хостинга или локально через export BOT_TOKEN=...)."
+    )
+ 
 # ============================================
 # ОСТАЛЬНЫЕ НАСТРОЙКИ
 # ============================================
