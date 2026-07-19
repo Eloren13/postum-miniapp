@@ -8,7 +8,7 @@ import os
 # Локально можно создать файл .env (он в .gitignore) с BOT_TOKEN=...
 # ============================================
 
-BOT_TOKEN = os.environ.get('8829424127:AAFQ_TCy80tMje3O-Jr2OVmKKpWHCOAgSIk')
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
 
 if not BOT_TOKEN:
