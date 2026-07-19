@@ -18,7 +18,7 @@ seed_database()
 # ============================================
 # 2. СОЗДАНИЕ FLASK ПРИЛОЖЕНИЯ
 # ============================================
-app = Flask(__name__, static_folder='web_app')
+app = Flask(__name__, static_folder='web_app', static_url_path='')
 CORS(app)
 
 # ============================================
