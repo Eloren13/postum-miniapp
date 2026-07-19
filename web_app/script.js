@@ -8,8 +8,8 @@ let state = {
     currentIndex: 0,
     score: 0,
     correctCount: 0,
-    totalQuestions: 10,
     currentTopic: null,
+    isDaily: false,
     filters: { discipline: 'all', topic: 'all', difficulty: 'all' }
 };
 
@@ -21,32 +21,142 @@ let user = {
     correct_answers: 0,
     total_answers: 0,
     daily_streak: 0,
-    achievements: []
+    last_daily_date: null
+};
+
+let dailyQuestionData = null;
+
+// Карта: какой экран открыть по нажатию аппаратной/программной кнопки
+// "Назад" в Telegram, в зависимости от того, что сейчас на экране.
+const backHandlers = {
+    'quiz-screen': goHome,
+    'question-screen': () => confirmLeaveQuiz(),
+    'result-screen': goHome,
+    'learning-screen': goHome,
+    'material-screen': showLearning,
+    'disciplines-screen': goHome,
+    'sections-screen': showDisciplines,
+    'topics-screen': () => showScreen('sections-screen'),
+    'stats-screen': goHome,
+    'achievements-screen': goHome
 };
 
 // ===== ИНИЦИАЛИЗАЦИЯ =====
 document.addEventListener('DOMContentLoaded', () => {
+    tg.ready();
     tg.expand();
-    
+
+    applyTelegramTheme();
+    tg.onEvent('themeChanged', applyTelegramTheme);
+
+    tg.BackButton.onClick(() => {
+        const current = document.querySelector('.screen.active')?.id;
+        (backHandlers[current] || goHome)();
+    });
+
     if (tg.initDataUnsafe?.user) {
         user.id = tg.initDataUnsafe.user.id;
+        const name = tg.initDataUnsafe.user.first_name;
+        if (name) {
+            const el = document.getElementById('greeting-title');
+            if (el) el.textContent = `👋 Привет, ${escapeHtml(name)}!`;
+        }
     }
-    
+
     loadUserData();
     loadDailyQuestion();
     loadQuickTopics();
     loadDisciplines();
-    loadAchievements();
     setupFilters();
 });
+
+// ===== ТЕМА TELEGRAM =====
+function applyTelegramTheme() {
+    const root = document.documentElement;
+    const tp = tg.themeParams || {};
+
+    root.style.setProperty('--tg-bg', tp.bg_color || '#0a0a1f');
+    root.style.setProperty('--tg-secondary-bg', tp.secondary_bg_color || '#14142c');
+    root.style.setProperty('--tg-text', tp.text_color || '#ffffff');
+    root.style.setProperty('--tg-hint', tp.hint_color || '#9494a8');
+    root.style.setProperty('--tg-link', tp.link_color || '#f7971e');
+    root.style.setProperty('--tg-button', tp.button_color || '#f7971e');
+    root.style.setProperty('--tg-button-text', tp.button_text_color || '#1a1a2e');
+
+    root.dataset.scheme = tg.colorScheme || 'dark';
+
+    if (tg.setHeaderColor) {
+        try { tg.setHeaderColor(tp.bg_color ? 'bg_color' : 'secondary_bg_color'); } catch (e) {}
+    }
+    if (tg.setBackgroundColor && tp.bg_color) {
+        try { tg.setBackgroundColor(tp.bg_color); } catch (e) {}
+    }
+}
+
+// ===== HAPTIC FEEDBACK =====
+function haptic(type = 'light') {
+    if (!tg.HapticFeedback) return;
+    try {
+        if (type === 'success' || type === 'error' || type === 'warning') {
+            tg.HapticFeedback.notificationOccurred(type);
+        } else if (type === 'selection') {
+            tg.HapticFeedback.selectionChanged();
+        } else {
+            tg.HapticFeedback.impactOccurred(type); // 'light' | 'medium' | 'heavy'
+        }
+    } catch (e) {}
+}
+
+// ===== УТИЛИТЫ =====
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+}
+
+function toast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.textContent = message;
+    container.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => {
+        el.classList.remove('show');
+        setTimeout(() => el.remove(), 300);
+    }, 3000);
+}
+
+function emptyState(message, icon = '📭') {
+    return `<div class="empty-state"><span class="empty-icon">${icon}</span><p>${escapeHtml(message)}</p></div>`;
+}
+
+function skeletonGrid(count = 4) {
+    return `<div class="skeleton-grid">${'<div class="skeleton skeleton-card"></div>'.repeat(count)}</div>`;
+}
+
+function skeletonRows(count = 4) {
+    return '<div class="skeleton skeleton-row"></div>'.repeat(count);
+}
 
 // ===== API =====
 async function api(endpoint, options = {}) {
     try {
         const res = await fetch(`${API_BASE}${endpoint}`, options);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return await res.json();
     } catch (e) {
         console.error('API Error:', e);
+        toast('Не удалось загрузить данные. Проверьте соединение.', 'error');
         return null;
     }
 }
@@ -55,20 +165,38 @@ async function api(endpoint, options = {}) {
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+
+    if (id === 'main-screen') {
+        tg.BackButton.hide();
+    } else {
+        tg.BackButton.show();
+    }
+
+    document.getElementById('app').scrollIntoView({ block: 'start', behavior: 'instant' in window ? 'instant' : 'auto' });
 }
 
 function goHome() {
     showScreen('main-screen');
     loadUserData();
+    loadDailyQuestion();
+}
+
+function confirmLeaveQuiz() {
+    if (state.questions.length && state.currentIndex < state.questions.length) {
+        if (!confirm('Прервать викторину? Прогресс по текущей попытке не сохранится.')) return;
+    }
+    goHome();
 }
 
 // ===== ПОЛЬЗОВАТЕЛЬ =====
 function loadUserData() {
     const saved = localStorage.getItem('art_quest_user');
     if (saved) {
-        user = { ...user, ...JSON.parse(saved) };
-        updateUI();
+        try {
+            user = { ...user, ...JSON.parse(saved) };
+        } catch (e) {}
     }
+    updateUI();
 }
 
 function saveUser() {
@@ -84,40 +212,87 @@ function updateUI() {
 
 // ===== ЕЖЕДНЕВНЫЙ ВЫЗОВ =====
 async function loadDailyQuestion() {
-    const data = await api('/api/daily');
-    if (data?.question) {
-        document.getElementById('daily-question').textContent = data.question;
+    const btn = document.getElementById('daily-btn');
+    const answeredToday = user.last_daily_date === todayStr();
+
+    document.getElementById('daily-streak').textContent = `Серия: ${user.daily_streak || 0} 🔥`;
+
+    if (answeredToday) {
+        document.getElementById('daily-question').textContent = 'Ты уже ответил на сегодняшний вопрос — заходи завтра!';
+        btn.textContent = '✅ Выполнено сегодня';
+        btn.disabled = true;
+        return;
     }
-    document.getElementById('daily-streak').textContent = `Серия: ${user.daily_streak || 0}`;
+
+    document.getElementById('daily-question').textContent = 'Загрузка вопроса…';
+    btn.textContent = 'Ответить на вызов';
+    btn.disabled = false;
+
+    const data = await api('/api/daily');
+    if (data?.id) {
+        dailyQuestionData = data;
+        document.getElementById('daily-question').textContent = data.question;
+    } else {
+        document.getElementById('daily-question').textContent = 'Вопрос дня пока недоступен.';
+        btn.disabled = true;
+    }
 }
 
 function startDaily() {
-    startQuiz();
+    if (!dailyQuestionData) {
+        toast('Вопрос дня ещё не загрузился, подождите секунду.', 'error');
+        return;
+    }
+    state.questions = [dailyQuestionData];
+    state.currentIndex = 0;
+    state.score = 0;
+    state.correctCount = 0;
+    state.isDaily = true;
+    showScreen('question-screen');
+    showQuestion();
+}
+
+function updateDailyStreakOnCompletion() {
+    const today = todayStr();
+    if (user.last_daily_date === today) return; // уже засчитано
+
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    user.daily_streak = (user.last_daily_date === yesterday) ? (user.daily_streak || 0) + 1 : 1;
+    user.last_daily_date = today;
+    saveUser();
 }
 
 // ===== БЫСТРЫЕ ТЕМЫ =====
 async function loadQuickTopics() {
+    const container = document.getElementById('quick-topics-container');
+    container.innerHTML = '<div class="skeleton" style="height:36px;width:100%;border-radius:999px;"></div>';
+
     const data = await api('/api/topics/quick');
-    if (data?.topics) {
-        const container = document.getElementById('quick-topics-container');
+    if (data?.topics?.length) {
         container.innerHTML = data.topics.map(t =>
-            `<button class="quick-topic-btn" onclick="startTopicQuiz(${t.id})">${t.icon || '📚'} ${t.name}</button>`
+            `<button class="quick-topic-btn" onclick="haptic('light'); startTopicQuiz(${t.id})">${escapeHtml(t.icon || '📚')} ${escapeHtml(t.name)}</button>`
         ).join('');
+    } else {
+        container.innerHTML = '';
     }
 }
 
 // ===== ДИСЦИПЛИНЫ =====
 async function loadDisciplines() {
+    const container = document.getElementById('disciplines-container');
+    container.innerHTML = skeletonGrid(6);
+
     const data = await api('/api/disciplines');
-    if (data) {
-        const container = document.getElementById('disciplines-container');
+    if (data?.length) {
         container.innerHTML = data.map(d =>
-            `<div class="discipline-card" onclick="showSections(${d.id})">
-                <span class="icon">${d.icon || '📚'}</span>
-                <div class="name">${d.name}</div>
-                <div class="desc">${d.description || ''}</div>
+            `<div class="discipline-card" onclick="haptic('light'); showSections(${d.id})">
+                <span class="icon">${escapeHtml(d.icon || '📚')}</span>
+                <div class="name">${escapeHtml(d.name)}</div>
+                <div class="desc">${escapeHtml(d.description || '')}</div>
             </div>`
         ).join('');
+    } else {
+        container.innerHTML = emptyState('Дисциплины пока не добавлены.', '📚');
     }
 }
 
@@ -127,31 +302,45 @@ function showDisciplines() {
 }
 
 async function showSections(id) {
+    const container = document.getElementById('sections-container');
+    showScreen('sections-screen');
+    container.innerHTML = skeletonGrid(4);
+
     const data = await api(`/api/sections/${id}`);
     if (data) {
-        showScreen('sections-screen');
         document.getElementById('sections-title').textContent = data.discipline_name || 'Разделы';
-        document.getElementById('sections-container').innerHTML = data.sections.map(s =>
-            `<div class="section-card" onclick="showTopics(${s.id})">
-                <div class="name">${s.name}</div>
-                <div class="desc">${s.description || ''}</div>
-            </div>`
-        ).join('');
+        if (data.sections?.length) {
+            container.innerHTML = data.sections.map(s =>
+                `<div class="section-card" onclick="haptic('light'); showTopics(${s.id})">
+                    <div class="name">${escapeHtml(s.name)}</div>
+                    <div class="desc">${escapeHtml(s.description || '')}</div>
+                </div>`
+            ).join('');
+        } else {
+            container.innerHTML = emptyState('В этой дисциплине пока нет разделов.', '📂');
+        }
     }
 }
 
 async function showTopics(id) {
+    const container = document.getElementById('topics-container');
+    showScreen('topics-screen');
+    container.innerHTML = skeletonGrid(4);
+
     const data = await api(`/api/topics/${id}`);
     if (data) {
-        showScreen('topics-screen');
         document.getElementById('topics-title').textContent = data.section_name || 'Темы';
-        document.getElementById('topics-container').innerHTML = data.topics.map(t =>
-            `<div class="topic-card" onclick="startTopicQuiz(${t.id})">
-                <div class="name">${t.name}</div>
-                <div class="desc">${t.description || ''}</div>
-                <div class="count">${t.question_count || 0} вопросов</div>
-            </div>`
-        ).join('');
+        if (data.topics?.length) {
+            container.innerHTML = data.topics.map(t =>
+                `<div class="topic-card" onclick="haptic('light'); startTopicQuiz(${t.id})">
+                    <div class="name">${escapeHtml(t.name)}</div>
+                    <div class="desc">${escapeHtml(t.description || '')}</div>
+                    <div class="count">${t.question_count || 0} вопросов</div>
+                </div>`
+            ).join('');
+        } else {
+            container.innerHTML = emptyState('В этом разделе пока нет тем.', '📄');
+        }
     }
 }
 
@@ -162,24 +351,34 @@ function showLearning() {
 }
 
 async function loadLearning() {
+    const container = document.getElementById('learning-container');
+    container.innerHTML = skeletonRows(5);
+
     const data = await api('/api/learning');
-    if (data) {
-        document.getElementById('learning-container').innerHTML = data.map(item =>
-            `<div class="learning-item" onclick="showMaterial(${item.id})">
-                <div class="title">${item.title}</div>
-                <div class="desc">${item.description || ''}</div>
+    if (data?.length) {
+        container.innerHTML = data.map(item =>
+            `<div class="learning-item" onclick="haptic('light'); showMaterial(${item.id})">
+                <div>
+                    <div class="title">${escapeHtml(item.title)}</div>
+                    <div class="desc">${escapeHtml(item.description || '')}</div>
+                </div>
+                <span class="arrow">›</span>
             </div>`
         ).join('');
+    } else {
+        container.innerHTML = emptyState('Обучающих материалов пока нет.', '📖');
     }
 }
 
 async function showMaterial(id) {
     const data = await api(`/api/material/${id}`);
-    if (data) {
+    if (data?.id) {
         showScreen('material-screen');
         document.getElementById('material-title').textContent = data.title;
-        document.getElementById('material-content').innerHTML = data.content.replace(/\n/g, '<br>');
+        document.getElementById('material-content').innerHTML = escapeHtml(data.content).replace(/\n/g, '<br>');
         state.currentTopic = data.topic_id;
+    } else {
+        toast('Не удалось загрузить материал.', 'error');
     }
 }
 
@@ -197,8 +396,10 @@ async function setupFilters() {
     const data = await api('/api/disciplines');
     if (data) {
         const select = document.getElementById('quiz-discipline');
+        const prev = select.value;
         select.innerHTML = '<option value="all">Все дисциплины</option>' +
-            data.map(d => `<option value="${d.id}">${d.icon || ''} ${d.name}</option>`).join('');
+            data.map(d => `<option value="${d.id}">${escapeHtml(d.icon || '')} ${escapeHtml(d.name)}</option>`).join('');
+        select.value = prev || 'all';
     }
 }
 
@@ -209,7 +410,7 @@ async function updateQuizTopics() {
     if (disciplineId !== 'all') {
         const data = await api(`/api/discipline-topics/${disciplineId}`);
         if (data) data.forEach(t => {
-            select.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+            select.innerHTML += `<option value="${t.id}">${escapeHtml(t.name)}</option>`;
         });
     }
 }
@@ -220,22 +421,23 @@ async function startQuiz() {
         topic: document.getElementById('quiz-topic').value,
         difficulty: document.getElementById('quiz-difficulty').value
     };
-    
+
     let url = '/api/questions/random?limit=10';
     if (state.filters.topic !== 'all') url += `&topic=${state.filters.topic}`;
     if (state.filters.discipline !== 'all') url += `&discipline=${state.filters.discipline}`;
     if (state.filters.difficulty !== 'all') url += `&difficulty=${state.filters.difficulty}`;
-    
+
     const data = await api(url);
     if (data?.length) {
         state.questions = data;
         state.currentIndex = 0;
         state.score = 0;
         state.correctCount = 0;
+        state.isDaily = false;
         showScreen('question-screen');
         showQuestion();
     } else {
-        alert('Вопросов по выбранным критериям не найдено.');
+        toast('Вопросов по выбранным критериям не найдено.', 'error');
     }
 }
 
@@ -246,10 +448,11 @@ function startTopicQuiz(id) {
             state.currentIndex = 0;
             state.score = 0;
             state.correctCount = 0;
+            state.isDaily = false;
             showScreen('question-screen');
             showQuestion();
         } else {
-            alert('Вопросов по этой теме пока нет.');
+            toast('Вопросов по этой теме пока нет.', 'error');
         }
     });
 }
@@ -259,17 +462,20 @@ function showQuestion() {
         showResult();
         return;
     }
-    
+
     const q = state.questions[state.currentIndex];
     document.getElementById('question-counter').textContent = `${state.currentIndex + 1}/${state.questions.length}`;
     document.getElementById('progress-fill').style.width = `${((state.currentIndex + 1) / state.questions.length) * 100}%`;
     document.getElementById('question-text').textContent = q.question;
     document.getElementById('question-topic').textContent = `📚 ${q.topic_name || 'Тема'}`;
+    document.getElementById('question-difficulty').textContent = '⭐'.repeat(q.difficulty || 1);
     document.getElementById('question-explanation').style.display = 'none';
-    
+
     const container = document.getElementById('options-container');
     container.innerHTML = '';
-    JSON.parse(q.options).forEach((opt, i) => {
+    let options = [];
+    try { options = JSON.parse(q.options); } catch (e) { options = []; }
+    options.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.textContent = opt;
@@ -285,10 +491,11 @@ function selectAnswer(selected, correct) {
         if (i === correct) b.classList.add('correct');
         if (i === selected && selected !== correct) b.classList.add('wrong');
     });
-    
+
     const q = state.questions[state.currentIndex];
     const isCorrect = selected === correct;
-    
+    haptic(isCorrect ? 'success' : 'error');
+
     if (isCorrect) {
         state.score += 10;
         state.correctCount++;
@@ -297,33 +504,37 @@ function selectAnswer(selected, correct) {
     }
     user.total_answers = (user.total_answers || 0) + 1;
     saveUser();
-    
+
     if (q.explanation) {
         const el = document.getElementById('question-explanation');
         el.style.display = 'block';
         el.textContent = '💡 ' + q.explanation;
     }
-    
+
     saveProgress(q.id, isCorrect);
-    
+
     setTimeout(() => {
         state.currentIndex++;
         showQuestion();
-    }, 3000);
+    }, 2600);
 }
 
 function showResult() {
     showScreen('result-screen');
     const total = state.questions.length;
     const correct = state.correctCount;
-    const pct = Math.round((correct / total) * 100);
-    
+    const pct = total ? Math.round((correct / total) * 100) : 0;
+
     let emoji = '📚', title = 'Хороший результат!';
     if (pct >= 90) { emoji = '🏆'; title = 'Блестяще! Вы — эрудит!'; }
     else if (pct >= 70) { emoji = '⭐'; title = 'Отлично! Продолжайте!'; }
     else if (pct >= 50) { emoji = '📖'; title = 'Неплохо! Учитесь дальше.'; }
     else { emoji = '💪'; title = 'Ничего страшного! Попробуйте снова.'; }
-    
+
+    if (state.isDaily) {
+        title = correct > 0 ? 'Вызов дня пройден!' : 'В следующий раз получится!';
+    }
+
     document.getElementById('result-emoji').textContent = emoji;
     document.getElementById('result-title').textContent = title;
     document.getElementById('result-stats').innerHTML = `
@@ -332,11 +543,17 @@ function showResult() {
         <div class="stat-row"><span class="label">⭐ Заработано очков</span><span class="value">${state.score}</span></div>
         <div class="stat-row"><span class="label">⚡ Получено XP</span><span class="value">+${correct * 15}</span></div>
     `;
-    
+
     user.score = (user.score || 0) + state.score;
     user.xp = (user.xp || 0) + correct * 15;
     user.level = Math.floor(user.xp / 100) + 1;
+
+    if (state.isDaily) {
+        updateDailyStreakOnCompletion();
+    }
+
     saveUser();
+    haptic(pct >= 50 ? 'success' : 'warning');
     checkAchievements();
 }
 
@@ -347,27 +564,44 @@ function showAchievements() {
 }
 
 async function loadAchievements() {
-    const data = await api('/api/achievements');
-    if (data) {
-        document.getElementById('achievements-container').innerHTML = data.map(a =>
+    const container = document.getElementById('achievements-container');
+    container.innerHTML = skeletonRows(4);
+
+    const params = new URLSearchParams({
+        user_id: user.id || '',
+        correct_answers: user.correct_answers || 0,
+        score: user.score || 0
+    });
+    const data = await api(`/api/achievements?${params.toString()}`);
+    if (data?.length) {
+        container.innerHTML = data.map(a =>
             `<div class="achievement ${a.unlocked ? 'unlocked' : 'locked'}">
-                <span class="icon">${a.icon || '🏅'}</span>
+                <span class="icon">${a.unlocked ? escapeHtml(a.icon || '🏅') : '🔒'}</span>
                 <div class="info">
-                    <div class="name">${a.name}</div>
-                    <div class="desc">${a.description} ${a.unlocked ? '✅' : `(${a.progress || 0}/${a.condition_value})`}</div>
+                    <div class="name">${escapeHtml(a.name)}</div>
+                    <div class="desc">${escapeHtml(a.description)} ${a.unlocked ? '✅' : `(${a.progress || 0}/${a.condition_value})`}</div>
                 </div>
             </div>`
         ).join('');
+    } else {
+        container.innerHTML = emptyState('Достижения пока не добавлены.', '🏅');
     }
 }
 
 async function checkAchievements() {
+    if (!user.id) return;
     const data = await api('/api/check-achievements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(user)
+        body: JSON.stringify({
+            id: user.id,
+            correct_answers: user.correct_answers,
+            score: user.score
+        })
     });
-    if (data?.unlocked?.length) loadAchievements();
+    if (data?.unlocked?.length) {
+        data.unlocked.forEach(name => toast(`🏅 Новое достижение: ${name}!`, 'success'));
+    }
 }
 
 // ===== СТАТИСТИКА =====
@@ -389,6 +623,7 @@ function showStats() {
 
 // ===== ПРОГРЕСС =====
 function saveProgress(qId, correct) {
+    if (!user.id) return;
     fetch('/api/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
