@@ -195,10 +195,52 @@ def save_progress():
 
 @app.route('/api/achievements')
 def get_achievements():
+    """Список достижений с учётом того, что уже разблокировано у этого пользователя."""
+    user_id = request.args.get('user_id')
+    correct_answers = int(request.args.get('correct_answers', 0))
+    score = int(request.args.get('score', 0))
+
     conn = get_db()
     achievements = conn.execute('SELECT * FROM achievements').fetchall()
+
+    unlocked_ids = set()
+    if user_id:
+        rows = conn.execute(
+            'SELECT achievement_id FROM user_achievements WHERE user_id = ?',
+            (user_id,)
+        ).fetchall()
+        unlocked_ids = {r['achievement_id'] for r in rows}
+
+    result = []
+    for a in achievements:
+        a = dict(a)
+        is_unlocked = a['id'] in unlocked_ids
+
+        progress = 0
+        if a['condition_type'] == 'correct_answers':
+            progress = correct_answers
+        elif a['condition_type'] == 'total_score':
+            progress = score
+        elif user_id and a['condition_type'] == 'topics_completed':
+            progress = conn.execute(
+                'SELECT COUNT(*) FROM user_topic_progress WHERE user_id = ? AND completed = 1',
+                (user_id,)
+            ).fetchone()[0]
+        elif user_id and a['condition_type'] == 'disciplines_completed':
+            progress = conn.execute('''
+                SELECT COUNT(DISTINCT s.discipline_id)
+                FROM user_topic_progress utp
+                JOIN topics t ON t.id = utp.topic_id
+                JOIN sections s ON s.id = t.section_id
+                WHERE utp.user_id = ? AND utp.total_count > 0
+            ''', (user_id,)).fetchone()[0]
+
+        a['unlocked'] = is_unlocked
+        a['progress'] = min(progress, a['condition_value'])
+        result.append(a)
+
     conn.close()
-    return jsonify([dict(a) for a in achievements])
+    return jsonify(result)
 
 @app.route('/api/discipline-topics/<int:discipline_id>')
 def get_discipline_topics(discipline_id):
@@ -284,47 +326,21 @@ def check_achievements():
 def run_bot():
     """Запуск Telegram бота с правильным event loop для Python 3.14"""
     try:
-        from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup
-        from telegram.ext import Application, CommandHandler, ContextTypes
-        
+        from telegram.ext import Application, CommandHandler
+        from bot import start, handle_web_app_data
+
         print("🤖 Запуск Telegram бота...")
-        
+
         # Создаем новый event loop для этого потока
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        
-        async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-            user = update.effective_user
-            
-            keyboard = [
-                [InlineKeyboardButton(
-                    "🎨 Открыть Арт-Квест",
-                    web_app=WebAppInfo(url=config.WEB_APP_URL)
-                )]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            
-            await update.message.reply_text(
-                f"👋 Привет, {user.first_name}!\n\n"
-                "Добро пожаловать в **Арт-Квест** — твою интерактивную энциклопедию!\n\n"
-                "📚 **Что тебя ждет:**\n"
-                "• 9 дисциплин: литература, история, философия, психология,\n"
-                "  социология, музыка, живопись, скульптура, театр\n"
-                "• 📖 Обучающие материалы по каждой теме\n"
-                "• 🎯 Викторины с разным уровнем сложности\n"
-                "• 🏅 Достижения и система уровней\n"
-                "• 📊 Отслеживание прогресса\n\n"
-                "Нажми на кнопку ниже, чтобы начать!",
-                reply_markup=reply_markup,
-                parse_mode='Markdown'
-            )
-        
-        # Создаем приложение бота
+
+        # Переиспользуем обработчики из bot.py — один источник правды
         bot_app = Application.builder().token(config.BOT_TOKEN).build()
         bot_app.add_handler(CommandHandler("start", start))
         bot_app.add_handler(CommandHandler("help", start))
         bot_app.add_handler(CommandHandler("play", start))
-        
+
         print("🚀 Бот запущен и готов к работе!")
         
         # Запускаем бота в созданном event loop
@@ -357,3 +373,12 @@ print("✅ Бот запущен!")
 # ============================================
 
 print("🌐 Flask приложение готово!")
+
+# ============================================
+# 7. ЛОКАЛЬНЫЙ ЗАПУСК
+# На проде (Render и т.п.) сервер запускается через gunicorn:
+#   gunicorn server:app
+# Эта часть нужна только для `python3 server.py` при разработке.
+# ============================================
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=config.PORT, debug=config.DEBUG)
