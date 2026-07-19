@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Арт-Квест</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -19,7 +19,7 @@
                         <span class="logo-text">Арт-Квест</span>
                     </div>
                     <div class="header-actions">
-                        <button class="icon-btn" onclick="showStats()">📊</button>
+                        <button class="icon-btn" onclick="haptic('light'); showStats()" aria-label="Статистика">📊</button>
                     </div>
                 </div>
                 <div class="user-stats">
@@ -42,29 +42,29 @@
 
             <!-- Приветствие -->
             <div class="greeting">
-                <h2>👋 Добро пожаловать!</h2>
+                <h2 id="greeting-title">👋 Добро пожаловать!</h2>
                 <p>Изучай искусство, литературу и историю в игровом формате</p>
             </div>
 
             <!-- Основное меню -->
             <div class="menu-grid">
-                <div class="menu-card primary" onclick="startQuiz()">
-                    <div class="menu-icon">🎯</div>
+                <div class="menu-card primary" onclick="haptic('light'); showQuiz()">
+                    <div class="menu-icon-badge"><span class="menu-icon">🎯</span></div>
                     <div class="menu-label">Викторина</div>
                     <div class="menu-badge">10 вопросов</div>
                 </div>
-                <div class="menu-card" onclick="showLearning()">
-                    <div class="menu-icon">📖</div>
+                <div class="menu-card" onclick="haptic('light'); showLearning()">
+                    <div class="menu-icon-badge"><span class="menu-icon">📖</span></div>
                     <div class="menu-label">Обучение</div>
                     <div class="menu-badge">Статьи</div>
                 </div>
-                <div class="menu-card" onclick="showDisciplines()">
-                    <div class="menu-icon">📚</div>
+                <div class="menu-card" onclick="haptic('light'); showDisciplines()">
+                    <div class="menu-icon-badge"><span class="menu-icon">📚</span></div>
                     <div class="menu-label">Дисциплины</div>
                     <div class="menu-badge">9 тем</div>
                 </div>
-                <div class="menu-card" onclick="showAchievements()">
-                    <div class="menu-icon">🏅</div>
+                <div class="menu-card" onclick="haptic('light'); showAchievements()">
+                    <div class="menu-icon-badge"><span class="menu-icon">🏅</span></div>
                     <div class="menu-label">Достижения</div>
                     <div class="menu-badge">Награды</div>
                 </div>
@@ -75,19 +75,19 @@
                 <div class="daily-header">
                     <div>
                         <span class="daily-icon">🔥</span>
-                        <span class="daily-title">Ежедневный вызов</span>
+                        <span class="daily-title">Вопрос дня</span>
                     </div>
                     <span class="daily-streak" id="daily-streak">Серия: 0</span>
                 </div>
-                <p class="daily-question" id="daily-question">Загрузка вопроса...</p>
-                <button class="daily-btn" onclick="startDaily()">Ответить на вызов</button>
+                <p class="daily-question" id="daily-question">Загрузка вопроса…</p>
+                <button class="daily-btn" id="daily-btn" onclick="haptic('medium'); startDaily()">Ответить на вызов</button>
             </div>
 
             <!-- Быстрые темы -->
             <div class="quick-section">
                 <div class="section-header">
                     <h3>⚡ Быстрый старт</h3>
-                    <span class="see-all">Все темы →</span>
+                    <button class="see-all" onclick="haptic('light'); showDisciplines()">Все темы →</button>
                 </div>
                 <div id="quick-topics-container" class="topics-scroll"></div>
             </div>
@@ -96,24 +96,27 @@
         <!-- ===== ЭКРАН ВИКТОРИНЫ ===== -->
         <div id="quiz-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="goHome()">‹</button>
+                <button class="back-btn" onclick="haptic('light'); goHome()" aria-label="Назад">‹</button>
                 <h2>🎯 Викторина</h2>
-                <div style="width:40px;"></div>
+                <div class="header-spacer"></div>
             </div>
             <div class="quiz-filters">
+                <label class="filter-label">Дисциплина</label>
                 <select id="quiz-discipline" onchange="updateQuizTopics()">
                     <option value="all">Все дисциплины</option>
                 </select>
+                <label class="filter-label">Тема</label>
                 <select id="quiz-topic">
                     <option value="all">Все темы</option>
                 </select>
+                <label class="filter-label">Сложность</label>
                 <select id="quiz-difficulty">
                     <option value="all">Любая сложность</option>
                     <option value="1">⭐ Легкая</option>
                     <option value="2">⭐⭐ Средняя</option>
                     <option value="3">⭐⭐⭐ Сложная</option>
                 </select>
-                <button class="start-btn" onclick="startQuiz()">🚀 Начать викторину</button>
+                <button class="start-btn" onclick="haptic('medium'); startQuiz()">🚀 Начать викторину</button>
             </div>
             <div id="quiz-container"></div>
         </div>
@@ -121,9 +124,9 @@
         <!-- ===== ЭКРАН ВОПРОСА ===== -->
         <div id="question-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="goHome()">‹</button>
+                <button class="back-btn" onclick="haptic('light'); confirmLeaveQuiz()" aria-label="Назад">‹</button>
                 <span id="question-counter" class="question-counter">1/10</span>
-                <div style="width:40px;"></div>
+                <div class="header-spacer"></div>
             </div>
             <div class="progress-container">
                 <div class="progress-track">
@@ -135,7 +138,7 @@
                     <span id="question-topic" class="question-topic">📚 Тема</span>
                     <span id="question-difficulty" class="question-difficulty">⭐</span>
                 </div>
-                <h2 id="question-text" class="question-text">Вопрос загружается...</h2>
+                <h2 id="question-text" class="question-text">Вопрос загружается…</h2>
                 <div id="options-container" class="options-grid"></div>
                 <div id="question-explanation" class="explanation" style="display:none;"></div>
             </div>
@@ -147,17 +150,19 @@
                 <div id="result-emoji" class="result-emoji">🏆</div>
                 <h2 id="result-title" class="result-title">Отличный результат!</h2>
                 <div id="result-stats" class="result-stats"></div>
-                <button class="result-btn primary" onclick="startQuiz()">🔄 Ещё раз</button>
-                <button class="result-btn secondary" onclick="goHome()">🏠 На главную</button>
+                <div class="result-actions">
+                    <button class="result-btn primary" onclick="haptic('medium'); startQuiz()">🔄 Ещё раз</button>
+                    <button class="result-btn secondary" onclick="haptic('light'); goHome()">🏠 На главную</button>
+                </div>
             </div>
         </div>
 
         <!-- ===== ЭКРАН ОБУЧЕНИЯ ===== -->
         <div id="learning-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="goHome()">‹</button>
+                <button class="back-btn" onclick="haptic('light'); goHome()" aria-label="Назад">‹</button>
                 <h2>📖 Обучение</h2>
-                <div style="width:40px;"></div>
+                <div class="header-spacer"></div>
             </div>
             <div id="learning-container" class="learning-list"></div>
         </div>
@@ -165,20 +170,20 @@
         <!-- ===== ЭКРАН МАТЕРИАЛА ===== -->
         <div id="material-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="showLearning()">‹</button>
+                <button class="back-btn" onclick="haptic('light'); showLearning()" aria-label="Назад">‹</button>
                 <h2 id="material-title">Материал</h2>
-                <div style="width:40px;"></div>
+                <div class="header-spacer"></div>
             </div>
             <div id="material-content" class="material-content"></div>
-            <button class="start-btn" onclick="startQuizFromMaterial()">🎯 Проверить знания</button>
+            <button class="start-btn" onclick="haptic('medium'); startQuizFromMaterial()">🎯 Проверить знания</button>
         </div>
 
         <!-- ===== ЭКРАН ДИСЦИПЛИН ===== -->
         <div id="disciplines-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="goHome()">‹</button>
+                <button class="back-btn" onclick="haptic('light'); goHome()" aria-label="Назад">‹</button>
                 <h2>📚 Дисциплины</h2>
-                <div style="width:40px;"></div>
+                <div class="header-spacer"></div>
             </div>
             <div id="disciplines-container" class="disciplines-grid"></div>
         </div>
@@ -186,9 +191,9 @@
         <!-- ===== ЭКРАН РАЗДЕЛОВ ===== -->
         <div id="sections-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="showDisciplines()">‹</button>
+                <button class="back-btn" onclick="haptic('light'); showDisciplines()" aria-label="Назад">‹</button>
                 <h2 id="sections-title">Разделы</h2>
-                <div style="width:40px;"></div>
+                <div class="header-spacer"></div>
             </div>
             <div id="sections-container" class="sections-grid"></div>
         </div>
@@ -196,9 +201,9 @@
         <!-- ===== ЭКРАН ТЕМ ===== -->
         <div id="topics-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="showSections()">‹</button>
+                <button class="back-btn" onclick="haptic('light'); showScreen('sections-screen')" aria-label="Назад">‹</button>
                 <h2 id="topics-title">Темы</h2>
-                <div style="width:40px;"></div>
+                <div class="header-spacer"></div>
             </div>
             <div id="topics-container" class="topics-grid"></div>
         </div>
@@ -206,9 +211,9 @@
         <!-- ===== ЭКРАН СТАТИСТИКИ ===== -->
         <div id="stats-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="goHome()">‹</button>
+                <button class="back-btn" onclick="haptic('light'); goHome()" aria-label="Назад">‹</button>
                 <h2>📊 Мой прогресс</h2>
-                <div style="width:40px;"></div>
+                <div class="header-spacer"></div>
             </div>
             <div id="stats-container" class="stats-card"></div>
         </div>
@@ -216,13 +221,15 @@
         <!-- ===== ЭКРАН ДОСТИЖЕНИЙ ===== -->
         <div id="achievements-screen" class="screen">
             <div class="screen-header">
-                <button class="back-btn" onclick="goHome()">‹</button>
+                <button class="back-btn" onclick="haptic('light'); goHome()" aria-label="Назад">‹</button>
                 <h2>🏅 Достижения</h2>
-                <div style="width:40px;"></div>
+                <div class="header-spacer"></div>
             </div>
             <div id="achievements-container" class="achievements-list"></div>
         </div>
     </div>
+
+    <div id="toast-container"></div>
 
     <script src="script.js"></script>
 </body>
