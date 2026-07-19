@@ -1,5 +1,15 @@
 // web_app/script.js
-const tg = window.Telegram.WebApp;
+// Заглушка на случай открытия вне Telegram (например, при тестировании
+// в обычном браузере) — приложение не должно падать без Telegram API.
+const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : {
+    ready() {}, expand() {},
+    initDataUnsafe: {},
+    colorScheme: window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+    onEvent() {}, offEvent() {},
+    setHeaderColor() {}, setBackgroundColor() {},
+    BackButton: { show() {}, hide() {}, onClick() {} },
+    HapticFeedback: { impactOccurred() {}, notificationOccurred() {}, selectionChanged() {} }
+};
 const API_BASE = '';
 
 // ===== СОСТОЯНИЕ =====
@@ -70,26 +80,22 @@ document.addEventListener('DOMContentLoaded', () => {
     setupFilters();
 });
 
-// ===== ТЕМА TELEGRAM =====
+// ===== ТЕМА =====
+// У приложения — собственный монохромный стиль с золотыми акцентами
+// (см. style.css). Из Telegram мы берём только признак "светлая/тёмная",
+// а не произвольные цвета темы — иначе оформление могло бы поехать
+// в случайный оттенок, который пользователь выбрал в настройках Telegram.
 function applyTelegramTheme() {
     const root = document.documentElement;
-    const tp = tg.themeParams || {};
+    const scheme = tg.colorScheme === 'light' ? 'light' : 'dark';
+    root.dataset.scheme = scheme;
 
-    root.style.setProperty('--tg-bg', tp.bg_color || '#0a0a1f');
-    root.style.setProperty('--tg-secondary-bg', tp.secondary_bg_color || '#14142c');
-    root.style.setProperty('--tg-text', tp.text_color || '#ffffff');
-    root.style.setProperty('--tg-hint', tp.hint_color || '#9494a8');
-    root.style.setProperty('--tg-link', tp.link_color || '#f7971e');
-    root.style.setProperty('--tg-button', tp.button_color || '#f7971e');
-    root.style.setProperty('--tg-button-text', tp.button_text_color || '#1a1a2e');
-
-    root.dataset.scheme = tg.colorScheme || 'dark';
-
-    if (tg.setHeaderColor) {
-        try { tg.setHeaderColor(tp.bg_color ? 'bg_color' : 'secondary_bg_color'); } catch (e) {}
+    const bg = scheme === 'light' ? '#eceae6' : '#0c0c0e';
+    if (tg.setBackgroundColor) {
+        try { tg.setBackgroundColor(bg); } catch (e) {}
     }
-    if (tg.setBackgroundColor && tp.bg_color) {
-        try { tg.setBackgroundColor(tp.bg_color); } catch (e) {}
+    if (tg.setHeaderColor) {
+        try { tg.setHeaderColor(bg); } catch (e) {}
     }
 }
 
