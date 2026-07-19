@@ -1,4 +1,48 @@
 /* web_app/style.css */
+
+/* ========================================
+   ДИЗАЙН-ТОКЕНЫ
+   Значения по умолчанию — тёмная тема.
+   Реальные цвета темы Telegram подставляются
+   через JS (applyTelegramTheme) в script.js.
+   ======================================== */
+:root {
+    --tg-bg: #0a0a1f;
+    --tg-secondary-bg: #14142c;
+    --tg-text: #ffffff;
+    --tg-hint: #9494a8;
+    --tg-link: #f7971e;
+    --tg-button: #f7971e;
+    --tg-button-text: #1a1a2e;
+
+    --surface: rgba(255, 255, 255, 0.04);
+    --surface-2: rgba(255, 255, 255, 0.07);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-soft: rgba(255, 255, 255, 0.05);
+
+    --accent-gold-1: #f7971e;
+    --accent-gold-2: #ffd200;
+    --accent-violet-1: #6c5ce7;
+    --accent-violet-2: #a29bfe;
+    --danger: #ff4757;
+    --success: #2ed573;
+
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-pill: 999px;
+
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+[data-scheme="light"] {
+    --surface: rgba(0, 0, 0, 0.035);
+    --surface-2: rgba(0, 0, 0, 0.06);
+    --border: rgba(0, 0, 0, 0.09);
+    --border-soft: rgba(0, 0, 0, 0.05);
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -7,16 +51,23 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #0a0a1a;
+    background: var(--tg-bg);
     min-height: 100vh;
-    color: #fff;
+    color: var(--tg-text);
     padding: 16px;
-    padding-bottom: 40px;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom));
+    padding-top: calc(16px + env(safe-area-inset-top));
+    transition: background 0.2s ease, color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #app {
-    max-width: 420px;
+    max-width: 460px;
     margin: 0 auto;
+}
+
+button, select {
+    font-family: inherit;
 }
 
 /* ========================================
@@ -24,7 +75,7 @@ body {
    ======================================== */
 .screen {
     display: none;
-    animation: slideUp 0.35s ease;
+    animation: slideUp 0.3s ease;
 }
 
 .screen.active {
@@ -32,16 +83,21 @@ body {
 }
 
 @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(14px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 /* ========================================
    ХЕДЕР
    ======================================== */
 .header {
-    padding: 12px 0 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 4px 0 16px;
+    border-bottom: 1px solid var(--border-soft);
     margin-bottom: 16px;
 }
 
@@ -64,29 +120,36 @@ body {
 .logo-text {
     font-size: 22px;
     font-weight: 700;
-    background: linear-gradient(135deg, #f7971e, #ffd200);
+    background: linear-gradient(135deg, var(--accent-gold-1), var(--accent-gold-2));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .icon-btn {
-    background: rgba(255,255,255,0.06);
+    background: var(--surface-2);
     border: none;
-    color: #fff;
-    font-size: 20px;
-    padding: 8px 12px;
-    border-radius: 10px;
+    color: var(--tg-text);
+    font-size: 18px;
+    padding: 9px 13px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.icon-btn:active {
+    transform: scale(0.92);
 }
 
 .user-stats {
     display: flex;
     justify-content: center;
     gap: 4px;
-    margin-top: 12px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    padding: 8px 4px;
+    margin-top: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 10px 4px;
 }
 
 .stat-item {
@@ -95,7 +158,9 @@ body {
     gap: 6px;
     padding: 4px 14px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
+    flex: 1;
+    justify-content: center;
 }
 
 .stat-icon {
@@ -104,7 +169,7 @@ body {
 
 .stat-divider {
     width: 1px;
-    background: rgba(255,255,255,0.06);
+    background: var(--border);
 }
 
 /* ========================================
@@ -115,14 +180,16 @@ body {
 }
 
 .greeting h2 {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 21px;
+    font-weight: 700;
     margin-bottom: 4px;
+    letter-spacing: -0.2px;
 }
 
 .greeting p {
-    color: #888;
+    color: var(--tg-hint);
     font-size: 14px;
+    line-height: 1.4;
 }
 
 /* ========================================
@@ -136,14 +203,15 @@ body {
 }
 
 .menu-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    padding: 16px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 18px 12px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.15s ease, background 0.15s ease;
     position: relative;
+    box-shadow: var(--shadow-card);
 }
 
 .menu-card:active {
@@ -151,28 +219,52 @@ body {
 }
 
 .menu-card.primary {
-    background: linear-gradient(135deg, rgba(247, 151, 30, 0.2), rgba(255, 210, 0, 0.05));
-    border-color: rgba(247, 151, 30, 0.2);
+    background: linear-gradient(135deg, rgba(247, 151, 30, 0.16), rgba(255, 210, 0, 0.05));
+    border-color: rgba(247, 151, 30, 0.25);
+}
+
+.menu-icon-badge {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    background: var(--surface-2);
+}
+
+.menu-card:nth-child(1) .menu-icon-badge {
+    background: linear-gradient(135deg, var(--accent-gold-1), var(--accent-gold-2));
+}
+.menu-card:nth-child(2) .menu-icon-badge {
+    background: linear-gradient(135deg, #4facfe, #00c2e0);
+}
+.menu-card:nth-child(3) .menu-icon-badge {
+    background: linear-gradient(135deg, var(--accent-violet-1), var(--accent-violet-2));
+}
+.menu-card:nth-child(4) .menu-icon-badge {
+    background: linear-gradient(135deg, #fa709a, #fee140);
 }
 
 .menu-icon {
-    font-size: 30px;
+    font-size: 22px;
     display: block;
-    margin-bottom: 6px;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
 }
 
 .menu-label {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .menu-badge {
     font-size: 10px;
-    color: #888;
-    margin-top: 4px;
-    background: rgba(255,255,255,0.04);
-    padding: 2px 10px;
-    border-radius: 10px;
+    color: var(--tg-hint);
+    margin-top: 5px;
+    background: var(--surface-2);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
     display: inline-block;
 }
 
@@ -180,9 +272,9 @@ body {
    ЕЖЕДНЕВНЫЙ ВЫЗОВ
    ======================================== */
 .daily-card {
-    background: linear-gradient(135deg, rgba(247, 151, 30, 0.12), rgba(255, 210, 0, 0.04));
-    border: 1px solid rgba(247, 151, 30, 0.15);
-    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(247, 151, 30, 0.14), rgba(255, 210, 0, 0.04));
+    border: 1px solid rgba(247, 151, 30, 0.2);
+    border-radius: var(--radius-lg);
     padding: 16px;
     margin-bottom: 20px;
 }
@@ -200,30 +292,31 @@ body {
 }
 
 .daily-title {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 15px;
 }
 
 .daily-streak {
     font-size: 13px;
-    color: #f7971e;
-    font-weight: 500;
+    color: var(--accent-gold-1);
+    font-weight: 600;
 }
 
 .daily-question {
     font-size: 15px;
-    color: #ddd;
+    color: var(--tg-text);
+    opacity: 0.85;
     line-height: 1.4;
     margin-bottom: 12px;
     padding: 8px 0;
 }
 
 .daily-btn {
-    background: linear-gradient(135deg, #f7971e, #ffd200);
+    background: linear-gradient(135deg, var(--accent-gold-1), var(--accent-gold-2));
     border: none;
     color: #1a1a2e;
-    padding: 10px 20px;
-    border-radius: 25px;
+    padding: 12px 20px;
+    border-radius: var(--radius-pill);
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
@@ -231,15 +324,21 @@ body {
     transition: all 0.2s;
 }
 
-.daily-btn:active {
+.daily-btn:active:not(:disabled) {
     transform: scale(0.97);
+}
+
+.daily-btn:disabled {
+    background: var(--surface-2);
+    color: var(--tg-hint);
+    cursor: default;
 }
 
 /* ========================================
    БЫСТРЫЕ ТЕМЫ
    ======================================== */
 .quick-section {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .section-header {
@@ -251,13 +350,17 @@ body {
 
 .section-header h3 {
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .see-all {
     font-size: 12px;
-    color: #888;
+    color: var(--tg-link);
     cursor: pointer;
+    background: none;
+    border: none;
+    font-weight: 600;
+    padding: 4px;
 }
 
 .topics-scroll {
@@ -273,67 +376,102 @@ body {
 }
 
 .topics-scroll::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.1);
+    background: var(--border);
     border-radius: 10px;
 }
 
 .quick-topic-btn {
     flex-shrink: 0;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.06);
-    color: #fff;
-    padding: 8px 16px;
-    border-radius: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    color: var(--tg-text);
+    padding: 9px 16px;
+    border-radius: var(--radius-pill);
     font-size: 13px;
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.2s;
+    transition: all 0.15s;
 }
 
 .quick-topic-btn:active {
     transform: scale(0.95);
+    background: var(--surface-2);
 }
 
 /* ========================================
-   ЭКРАН ВИКТОРИНЫ
+   ОБЩИЙ ХЕДЕР ЭКРАНОВ
    ======================================== */
 .screen-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-bottom: 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid var(--border-soft);
     margin-bottom: 16px;
 }
 
 .screen-header h2 {
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
+    text-align: center;
+    flex: 1;
+}
+
+.header-spacer {
+    width: 36px;
 }
 
 .back-btn {
-    background: none;
+    background: var(--surface-2);
     border: none;
-    color: #fff;
-    font-size: 28px;
+    color: var(--tg-text);
+    font-size: 22px;
     cursor: pointer;
-    padding: 0 4px;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
     line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s;
 }
 
+.back-btn:active {
+    transform: scale(0.92);
+}
+
+/* ========================================
+   ФИЛЬТРЫ ВИКТОРИНЫ
+   ======================================== */
 .quiz-filters {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 6px;
+    margin-bottom: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+}
+
+.filter-label {
+    font-size: 12px;
+    color: var(--tg-hint);
+    font-weight: 600;
+    margin-top: 6px;
+}
+
+.filter-label:first-child {
+    margin-top: 0;
 }
 
 .quiz-filters select {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.06);
-    color: #fff;
-    padding: 10px 14px;
-    border-radius: 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--tg-text);
+    padding: 11px 14px;
+    border-radius: var(--radius-sm);
     font-size: 14px;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
@@ -343,21 +481,22 @@ body {
 }
 
 .quiz-filters select option {
-    background: #1a1a2e;
-    color: #fff;
+    background: var(--tg-secondary-bg);
+    color: var(--tg-text);
 }
 
 .start-btn {
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    background: linear-gradient(135deg, var(--accent-violet-1), var(--accent-violet-2));
     border: none;
     color: #fff;
-    padding: 12px;
-    border-radius: 10px;
+    padding: 13px;
+    border-radius: var(--radius-sm);
     font-weight: 700;
     font-size: 15px;
     cursor: pointer;
     transition: all 0.2s;
-    margin-top: 4px;
+    margin-top: 6px;
+    width: 100%;
 }
 
 .start-btn:active {
@@ -373,29 +512,32 @@ body {
 
 .progress-track {
     width: 100%;
-    height: 4px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 2px;
+    height: 5px;
+    background: var(--surface-2);
+    border-radius: 3px;
     overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #f7971e, #ffd200);
-    transition: width 0.5s ease;
-    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent-gold-1), var(--accent-gold-2));
+    transition: width 0.4s ease;
+    border-radius: 3px;
 }
 
 .question-counter {
     font-size: 14px;
-    color: #888;
-    font-weight: 500;
+    color: var(--tg-hint);
+    font-weight: 600;
 }
 
 .question-card {
-    background: rgba(255,255,255,0.03);
-    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
     padding: 20px;
+    box-shadow: var(--shadow-card);
+    animation: fadeIn 0.25s ease;
 }
 
 .question-meta {
@@ -406,9 +548,10 @@ body {
 
 .question-topic {
     font-size: 12px;
-    color: #888;
+    color: var(--tg-hint);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    font-weight: 600;
 }
 
 .question-difficulty {
@@ -417,6 +560,7 @@ body {
 
 .question-text {
     font-size: 19px;
+    font-weight: 600;
     line-height: 1.5;
     margin-bottom: 20px;
 }
@@ -428,11 +572,11 @@ body {
 }
 
 .option-btn {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06);
-    color: #fff;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--tg-text);
     padding: 14px 16px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all 0.2s;
     text-align: left;
@@ -446,28 +590,43 @@ body {
 
 .option-btn.correct {
     background: rgba(46, 213, 115, 0.15);
-    border-color: #2ed573;
+    border-color: var(--success);
+    animation: pulseCorrect 0.4s ease;
 }
 
 .option-btn.wrong {
     background: rgba(255, 71, 87, 0.15);
-    border-color: #ff4757;
+    border-color: var(--danger);
+    animation: shake 0.3s ease;
+}
+
+@keyframes pulseCorrect {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
 }
 
 .option-btn:disabled {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.65;
 }
 
 .explanation {
     margin-top: 16px;
     padding: 14px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 10px;
-    border-left: 3px solid #f7971e;
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--accent-gold-1);
     font-size: 14px;
-    color: #aaa;
+    color: var(--tg-hint);
     line-height: 1.5;
+    animation: fadeIn 0.3s ease;
 }
 
 /* ========================================
@@ -475,9 +634,11 @@ body {
    ======================================== */
 .result-card {
     text-align: center;
-    padding: 30px 20px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 16px;
+    padding: 36px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
 }
 
 .result-emoji {
@@ -487,42 +648,55 @@ body {
 }
 
 .result-title {
-    font-size: 24px;
-    margin-bottom: 16px;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 18px;
 }
 
 .result-stats {
     font-size: 15px;
-    line-height: 2.2;
-    color: #aaa;
+    color: var(--tg-hint);
     margin-bottom: 24px;
+    text-align: left;
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+    padding: 4px 16px;
 }
 
 .result-stats .stat-row {
     display: flex;
     justify-content: space-between;
-    padding: 4px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.result-stats .stat-row:last-child {
+    border-bottom: none;
 }
 
 .result-stats .stat-row .label {
-    color: #888;
+    color: var(--tg-hint);
 }
 
 .result-stats .stat-row .value {
-    font-weight: 600;
-    color: #fff;
+    font-weight: 700;
+    color: var(--tg-text);
+}
+
+.result-actions {
+    display: flex;
+    gap: 10px;
 }
 
 .result-btn {
     border: none;
-    padding: 12px 30px;
-    border-radius: 25px;
+    padding: 13px 20px;
+    border-radius: var(--radius-pill);
     font-weight: 700;
-    font-size: 15px;
+    font-size: 14px;
     cursor: pointer;
-    margin: 4px 6px;
     transition: all 0.2s;
+    flex: 1;
 }
 
 .result-btn:active {
@@ -530,17 +704,18 @@ body {
 }
 
 .result-btn.primary {
-    background: linear-gradient(135deg, #f7971e, #ffd200);
+    background: linear-gradient(135deg, var(--accent-gold-1), var(--accent-gold-2));
     color: #1a1a2e;
 }
 
 .result-btn.secondary {
-    background: rgba(255,255,255,0.06);
-    color: #fff;
+    background: var(--surface-2);
+    color: var(--tg-text);
+    border: 1px solid var(--border);
 }
 
 /* ========================================
-   ДИСЦИПЛИНЫ
+   ДИСЦИПЛИНЫ / РАЗДЕЛЫ / ТЕМЫ
    ======================================== */
 .disciplines-grid,
 .sections-grid,
@@ -553,33 +728,34 @@ body {
 .discipline-card,
 .section-card,
 .topic-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
     padding: 16px 12px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
 }
 
 .discipline-card:active,
 .section-card:active,
 .topic-card:active {
     transform: scale(0.95);
+    background: var(--surface-2);
 }
 
 .discipline-card .icon,
 .section-card .icon,
 .topic-card .icon {
-    font-size: 28px;
+    font-size: 26px;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .discipline-card .name,
 .section-card .name,
 .topic-card .name {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 13px;
 }
 
@@ -587,14 +763,19 @@ body {
 .section-card .desc,
 .topic-card .desc {
     font-size: 11px;
-    color: #888;
-    margin-top: 2px;
+    color: var(--tg-hint);
+    margin-top: 3px;
+    line-height: 1.3;
 }
 
 .topic-card .count {
     font-size: 11px;
-    color: #666;
-    margin-top: 4px;
+    color: var(--tg-hint);
+    margin-top: 6px;
+    background: var(--surface-2);
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
 }
 
 /* ========================================
@@ -607,53 +788,67 @@ body {
 }
 
 .learning-item {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.04);
-    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
     padding: 14px 16px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
 }
 
 .learning-item:active {
     transform: scale(0.98);
+    background: var(--surface-2);
 }
 
 .learning-item .title {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 15px;
 }
 
 .learning-item .desc {
     font-size: 13px;
-    color: #888;
+    color: var(--tg-hint);
     margin-top: 2px;
 }
 
+.learning-item .arrow {
+    color: var(--tg-hint);
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
 .material-content {
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 18px;
     line-height: 1.8;
     font-size: 15px;
-    margin: 12px 0;
-    color: #ccc;
+    margin: 12px 0 16px;
+    color: var(--tg-text);
+    opacity: 0.9;
 }
 
 /* ========================================
    СТАТИСТИКА
    ======================================== */
 .stats-card {
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 6px 20px;
 }
 
 .stats-card .stat-row {
     display: flex;
     justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-soft);
 }
 
 .stats-card .stat-row:last-child {
@@ -661,11 +856,11 @@ body {
 }
 
 .stats-card .stat-row .label {
-    color: #888;
+    color: var(--tg-hint);
 }
 
 .stats-card .stat-row .value {
-    font-weight: 600;
+    font-weight: 700;
 }
 
 /* ========================================
@@ -681,15 +876,23 @@ body {
     display: flex;
     align-items: center;
     gap: 14px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    transition: all 0.15s;
 }
 
 .achievement .icon {
-    font-size: 28px;
+    font-size: 26px;
     width: 44px;
-    text-align: center;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .achievement .info {
@@ -697,25 +900,133 @@ body {
 }
 
 .achievement .info .name {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 14px;
 }
 
 .achievement .info .desc {
     font-size: 12px;
-    color: #888;
+    color: var(--tg-hint);
+    margin-top: 2px;
 }
 
 .achievement.locked {
-    opacity: 0.35;
+    opacity: 0.45;
 }
 
 .achievement.unlocked {
-    border-left: 3px solid #ffd200;
+    border-color: rgba(255, 210, 0, 0.35);
+    background: linear-gradient(135deg, rgba(247, 151, 30, 0.08), transparent);
+}
+
+.achievement.unlocked .icon {
+    background: linear-gradient(135deg, var(--accent-gold-1), var(--accent-gold-2));
 }
 
 .achievement.unlocked .info .name {
-    color: #ffd200;
+    color: var(--accent-gold-1);
+}
+
+/* ========================================
+   СОСТОЯНИЯ ЗАГРУЗКИ (SKELETON)
+   ======================================== */
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+}
+
+.skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    animation: shimmer 1.3s infinite;
+}
+
+@keyframes shimmer {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+}
+
+.skeleton-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.skeleton-card {
+    height: 84px;
+}
+
+.skeleton-row {
+    height: 60px;
+    margin-bottom: 8px;
+}
+
+/* ========================================
+   ПУСТЫЕ СОСТОЯНИЯ
+   ======================================== */
+.empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--tg-hint);
+    grid-column: 1 / -1;
+}
+
+.empty-icon {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ========================================
+   ТОСТЫ
+   ======================================== */
+#toast-container {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+    pointer-events: none;
+    max-width: 460px;
+    margin: 0 auto;
+}
+
+.toast {
+    background: var(--tg-secondary-bg);
+    border: 1px solid var(--border);
+    color: var(--tg-text);
+    padding: 13px 16px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s ease;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.error {
+    border-left: 3px solid var(--danger);
+}
+
+.toast.success {
+    border-left: 3px solid var(--success);
 }
 
 /* ========================================
@@ -726,26 +1037,21 @@ body {
         grid-template-columns: 1fr 1fr;
         gap: 8px;
     }
-    
+
     .disciplines-grid,
     .sections-grid,
     .topics-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .question-text {
         font-size: 17px;
     }
-    
+
     .user-stats {
         font-size: 12px;
-        padding: 6px 2px;
     }
-    
-    .stat-item {
-        padding: 2px 10px;
-    }
-    
+
     .result-title {
         font-size: 20px;
     }
