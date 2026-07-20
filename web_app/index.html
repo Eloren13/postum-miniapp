@@ -27,24 +27,48 @@
                 </div>
                 <div class="user-stats">
                     <div class="stat-item">
-                        <span class="stat-icon">⭐</span>
                         <span class="stat-value" id="user-score">0</span>
+                        <span class="stat-icon">очки</span>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-item">
-                        <span class="stat-icon">🏆</span>
                         <span class="stat-value" id="user-level">1</span>
+                        <span class="stat-icon">уровень</span>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-item">
-                        <span class="stat-icon">⚡</span>
-                        <span class="stat-value" id="user-xp">0</span>
+                        <span class="stat-value" id="user-accuracy">—</span>
+                        <span class="stat-icon">точность</span>
                     </div>
+                </div>
+                <div class="level-progress">
+                    <div class="level-progress-track"><div class="level-progress-fill" id="level-progress-fill" style="width:0%"></div></div>
+                    <span class="level-progress-label" id="level-progress-label">0 XP · до уровня 2 осталось 100</span>
+                </div>
+            </div>
+
+            <!-- Поиск -->
+            <div class="search-wrapper">
+                <span class="search-icon">⌕</span>
+                <input type="text" id="search-input" class="search-input" placeholder="Найти тему: художник, философ, эпоха…" oninput="onSearchInput(this.value)" onfocus="onSearchInput(this.value)">
+                <div id="search-results" class="search-results"></div>
+            </div>
+
+            <!-- Продолжить с прошлого раза -->
+            <div id="resume-card" class="resume-card" style="display:none;" onclick="haptic('light'); resumeLastTopic()">
+                <span class="resume-label">Продолжить</span>
+                <div class="resume-body">
+                    <span class="resume-icon" id="resume-icon">📖</span>
+                    <div class="resume-text">
+                        <div class="resume-topic" id="resume-topic">—</div>
+                        <div class="resume-discipline" id="resume-discipline">—</div>
+                    </div>
+                    <span class="resume-arrow">→</span>
                 </div>
             </div>
 
             <!-- Приветствие -->
-            <div class="greeting">
+            <div class="greeting" id="greeting-block">
                 <h2 id="greeting-title">👋 Добро пожаловать!</h2>
                 <p>Изучай искусство, литературу и историю в игровом формате</p>
             </div>
@@ -86,13 +110,13 @@
                 <button class="daily-btn" id="daily-btn" onclick="haptic('medium'); startDaily()">Ответить на вызов</button>
             </div>
 
-            <!-- Быстрые темы -->
+            <!-- Дисциплины и прогресс -->
             <div class="quick-section">
                 <div class="section-header">
-                    <h3>⚡ Быстрый старт</h3>
-                    <button class="see-all" onclick="haptic('light'); showDisciplines()">Все темы →</button>
+                    <h3>Дисциплины</h3>
+                    <button class="see-all" onclick="haptic('light'); showDisciplines()">Все →</button>
                 </div>
-                <div id="quick-topics-container" class="topics-scroll"></div>
+                <div id="discipline-progress-container" class="discipline-strip"></div>
             </div>
         </div>
 
@@ -105,20 +129,21 @@
             </div>
             <div class="quiz-filters">
                 <label class="filter-label">Дисциплина</label>
-                <select id="quiz-discipline" onchange="updateQuizTopics()">
-                    <option value="all">Все дисциплины</option>
-                </select>
+                <div id="quiz-discipline-chips" class="chip-row"></div>
+
                 <label class="filter-label">Тема</label>
                 <select id="quiz-topic">
                     <option value="all">Все темы</option>
                 </select>
+
                 <label class="filter-label">Сложность</label>
-                <select id="quiz-difficulty">
-                    <option value="all">Любая сложность</option>
-                    <option value="1">⭐ Легкая</option>
-                    <option value="2">⭐⭐ Средняя</option>
-                    <option value="3">⭐⭐⭐ Сложная</option>
-                </select>
+                <div id="quiz-difficulty-segmented" class="segmented">
+                    <button type="button" class="segmented-btn active" data-value="all" onclick="haptic('selection'); selectDifficulty('all', this)">Любая</button>
+                    <button type="button" class="segmented-btn" data-value="1" onclick="haptic('selection'); selectDifficulty('1', this)">● Лёгкая</button>
+                    <button type="button" class="segmented-btn" data-value="2" onclick="haptic('selection'); selectDifficulty('2', this)">●● Средняя</button>
+                    <button type="button" class="segmented-btn" data-value="3" onclick="haptic('selection'); selectDifficulty('3', this)">●●● Сложная</button>
+                </div>
+
                 <button class="start-btn" onclick="haptic('medium'); startQuiz()">🚀 Начать викторину</button>
             </div>
             <div id="quiz-container"></div>
