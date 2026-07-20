@@ -168,14 +168,15 @@ def save_progress():
     user_id = data.get('user_id')
     question_id = data.get('question_id')
     correct = data.get('correct', False)
-    
+
     conn = get_db()
     topic = conn.execute(
         'SELECT topic_id FROM questions WHERE id = ?',
         (question_id,)
     ).fetchone()
-    
+
     if topic:
+        topic_id = topic[0]
         conn.execute('''
             INSERT OR REPLACE INTO user_topic_progress 
             (user_id, topic_id, correct_count, total_count, last_answered)
@@ -186,12 +187,82 @@ def save_progress():
                          WHERE user_id = ? AND topic_id = ?), 0) + 1,
                 datetime('now')
             )
-        ''', (user_id, topic[0], user_id, topic[0], 1 if correct else 0,
-              user_id, topic[0]))
-    
+        ''', (user_id, topic_id, user_id, topic_id, 1 if correct else 0,
+              user_id, topic_id))
+
+        # Тема считается пройденной, когда пользователь хотя бы раз
+        # ответил на все вопросы, которые для неё существуют.
+        total_questions = conn.execute(
+            'SELECT COUNT(*) FROM questions WHERE topic_id = ?', (topic_id,)
+        ).fetchone()[0]
+        conn.execute('''
+            UPDATE user_topic_progress SET completed = 1
+            WHERE user_id = ? AND topic_id = ? AND total_count >= ?
+        ''', (user_id, topic_id, max(total_questions, 1)))
+
     conn.commit()
     conn.close()
     return jsonify({'status': 'ok'})
+
+@app.route('/api/summary')
+def get_summary():
+    """Сводка для главной страницы: прогресс по дисциплинам и последняя тема."""
+    user_id = request.args.get('user_id')
+    conn = get_db()
+
+    disciplines = conn.execute('''
+        SELECT d.id, d.name, d.icon,
+               COUNT(DISTINCT t.id) as topics_total,
+               COUNT(DISTINCT CASE WHEN utp.completed = 1 THEN t.id END) as topics_completed
+        FROM disciplines d
+        LEFT JOIN sections s ON s.discipline_id = d.id
+        LEFT JOIN topics t ON t.section_id = s.id
+        LEFT JOIN user_topic_progress utp ON utp.topic_id = t.id AND utp.user_id = ?
+        GROUP BY d.id
+        ORDER BY d.name
+    ''', (user_id,)).fetchall()
+
+    last_topic = None
+    if user_id:
+        row = conn.execute('''
+            SELECT t.id, t.name as topic_name, d.name as discipline_name, d.icon
+            FROM user_topic_progress utp
+            JOIN topics t ON t.id = utp.topic_id
+            JOIN sections s ON s.id = t.section_id
+            JOIN disciplines d ON d.id = s.discipline_id
+            WHERE utp.user_id = ?
+            ORDER BY utp.last_answered DESC
+            LIMIT 1
+        ''', (user_id,)).fetchone()
+        if row:
+            last_topic = dict(row)
+
+    conn.close()
+    return jsonify({
+        'disciplines': [dict(d) for d in disciplines],
+        'last_topic': last_topic
+    })
+
+@app.route('/api/search')
+def search():
+    """Поиск тем по названию/описанию — используется строкой поиска на главной."""
+    query = request.args.get('q', '').strip()
+    if len(query) < 2:
+        return jsonify([])
+
+    conn = get_db()
+    like = f'%{query}%'
+    rows = conn.execute('''
+        SELECT t.id, t.name, t.description, d.name as discipline_name, d.icon
+        FROM topics t
+        JOIN sections s ON s.id = t.section_id
+        JOIN disciplines d ON d.id = s.discipline_id
+        WHERE t.name LIKE ? OR t.description LIKE ? OR d.name LIKE ?
+        ORDER BY t.name
+        LIMIT 15
+    ''', (like, like, like)).fetchall()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
 
 @app.route('/api/achievements')
 def get_achievements():
