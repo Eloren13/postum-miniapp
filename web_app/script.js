@@ -35,6 +35,8 @@ let user = {
 };
 
 let dailyQuestionData = null;
+let quizFilterState = { discipline: 'all', difficulty: 'all' };
+let searchDebounceTimer = null;
 
 // Карта: какой экран открыть по нажатию аппаратной/программной кнопки
 // "Назад" в Telegram, в зависимости от того, что сейчас на экране.
@@ -75,9 +77,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadUserData();
     loadDailyQuestion();
-    loadQuickTopics();
+    loadSummary();
     loadDisciplines();
     setupFilters();
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-wrapper')) {
+            closeSearchResults();
+        }
+    });
 });
 
 // ===== ТЕМА =====
@@ -185,6 +193,7 @@ function goHome() {
     showScreen('main-screen');
     loadUserData();
     loadDailyQuestion();
+    loadSummary();
 }
 
 function confirmLeaveQuiz() {
@@ -213,7 +222,15 @@ function saveUser() {
 function updateUI() {
     document.getElementById('user-score').textContent = user.score || 0;
     document.getElementById('user-level').textContent = user.level || 1;
-    document.getElementById('user-xp').textContent = user.xp || 0;
+
+    const acc = user.total_answers ? Math.round((user.correct_answers / user.total_answers) * 100) : null;
+    document.getElementById('user-accuracy').textContent = acc === null ? '—' : `${acc}%`;
+
+    const xpIntoLevel = (user.xp || 0) % 100;
+    const xpToGo = 100 - xpIntoLevel;
+    document.getElementById('level-progress-fill').style.width = `${xpIntoLevel}%`;
+    document.getElementById('level-progress-label').textContent =
+        `${xpIntoLevel} XP · до уровня ${(user.level || 1) + 1} осталось ${xpToGo}`;
 }
 
 // ===== ЕЖЕДНЕВНЫЙ ВЫЗОВ =====
@@ -268,19 +285,90 @@ function updateDailyStreakOnCompletion() {
     saveUser();
 }
 
-// ===== БЫСТРЫЕ ТЕМЫ =====
-async function loadQuickTopics() {
-    const container = document.getElementById('quick-topics-container');
-    container.innerHTML = '<div class="skeleton" style="height:36px;width:100%;border-radius:999px;"></div>';
+// ===== СВОДКА: ПРОГРЕСС ПО ДИСЦИПЛИНАМ + "ПРОДОЛЖИТЬ" =====
+async function loadSummary() {
+    const container = document.getElementById('discipline-progress-container');
+    container.innerHTML = `<div class="skeleton" style="height:88px;width:84px;flex-shrink:0;"></div>`.repeat(4);
 
-    const data = await api('/api/topics/quick');
-    if (data?.topics?.length) {
-        container.innerHTML = data.topics.map(t =>
-            `<button class="quick-topic-btn" onclick="haptic('light'); startTopicQuiz(${t.id})">${escapeHtml(t.icon || '📚')} ${escapeHtml(t.name)}</button>`
-        ).join('');
+    const params = user.id ? `?user_id=${user.id}` : '';
+    const data = await api(`/api/summary${params}`);
+    if (!data) return;
+
+    if (data.disciplines?.length) {
+        container.innerHTML = data.disciplines.map(d => {
+            const pct = d.topics_total ? Math.round((d.topics_completed / d.topics_total) * 100) : 0;
+            return `<div class="discipline-chip ${pct >= 100 ? 'done' : ''}" onclick="haptic('light'); showSections(${d.id})">
+                <span class="icon">${escapeHtml(d.icon || '📚')}</span>
+                <div class="name">${escapeHtml(d.name)}</div>
+                <div class="chip-progress-track"><div class="chip-progress-fill" style="width:${pct}%"></div></div>
+                <span class="chip-progress-label">${d.topics_completed}/${d.topics_total}</span>
+            </div>`;
+        }).join('');
     } else {
         container.innerHTML = '';
     }
+
+    const resumeCard = document.getElementById('resume-card');
+    const greetingBlock = document.getElementById('greeting-block');
+    if (data.last_topic) {
+        document.getElementById('resume-icon').textContent = data.last_topic.icon || '📖';
+        document.getElementById('resume-topic').textContent = data.last_topic.topic_name;
+        document.getElementById('resume-discipline').textContent = data.last_topic.discipline_name;
+        resumeCard.dataset.topicId = data.last_topic.id;
+        resumeCard.style.display = 'block';
+        greetingBlock.style.display = 'none';
+    } else {
+        resumeCard.style.display = 'none';
+        greetingBlock.style.display = 'block';
+    }
+}
+
+function resumeLastTopic() {
+    const id = document.getElementById('resume-card').dataset.topicId;
+    if (id) startTopicQuiz(parseInt(id, 10));
+}
+
+// ===== ПОИСК ТЕМ =====
+function onSearchInput(value) {
+    clearTimeout(searchDebounceTimer);
+    const query = value.trim();
+    if (query.length < 2) {
+        closeSearchResults();
+        return;
+    }
+    searchDebounceTimer = setTimeout(() => runSearch(query), 300);
+}
+
+async function runSearch(query) {
+    const resultsEl = document.getElementById('search-results');
+    const data = await api(`/api/search?q=${encodeURIComponent(query)}`);
+    if (!data) return;
+
+    if (data.length) {
+        resultsEl.innerHTML = data.map(t =>
+            `<div class="search-result-item" onclick="haptic('light'); openSearchResult(${t.id})">
+                <span class="icon">${escapeHtml(t.icon || '📚')}</span>
+                <div>
+                    <div class="name">${escapeHtml(t.name)}</div>
+                    <div class="discipline">${escapeHtml(t.discipline_name)}</div>
+                </div>
+            </div>`
+        ).join('');
+    } else {
+        resultsEl.innerHTML = `<div class="search-empty">Ничего не найдено по запросу «${escapeHtml(query)}»</div>`;
+    }
+    resultsEl.classList.add('open');
+}
+
+function openSearchResult(topicId) {
+    closeSearchResults();
+    document.getElementById('search-input').value = '';
+    startTopicQuiz(topicId);
+}
+
+function closeSearchResults() {
+    const resultsEl = document.getElementById('search-results');
+    if (resultsEl) resultsEl.classList.remove('open');
 }
 
 // ===== ДИСЦИПЛИНЫ =====
@@ -366,7 +454,7 @@ async function loadLearning() {
             `<div class="learning-item" onclick="haptic('light'); showMaterial(${item.id})">
                 <div>
                     <div class="title">${escapeHtml(item.title)}</div>
-                    <div class="desc">${escapeHtml(item.description || '')}</div>
+                    <div class="desc">${escapeHtml(item.topic_name || '')}</div>
                 </div>
                 <span class="arrow">›</span>
             </div>`
@@ -400,20 +488,39 @@ function showQuiz() {
 
 async function setupFilters() {
     const data = await api('/api/disciplines');
-    if (data) {
-        const select = document.getElementById('quiz-discipline');
-        const prev = select.value;
-        select.innerHTML = '<option value="all">Все дисциплины</option>' +
-            data.map(d => `<option value="${d.id}">${escapeHtml(d.icon || '')} ${escapeHtml(d.name)}</option>`).join('');
-        select.value = prev || 'all';
+    if (!data) return;
+
+    const container = document.getElementById('quiz-discipline-chips');
+    const chips = [{ id: 'all', name: 'Все', icon: '✦' }, ...data];
+    container.innerHTML = chips.map(d =>
+        `<button type="button" class="filter-chip ${d.id === quizFilterState.discipline || (d.id === 'all' && quizFilterState.discipline === 'all') ? 'active' : ''}"
+            data-value="${d.id}" onclick="haptic('selection'); selectQuizDiscipline('${d.id}', this)">
+            ${escapeHtml(d.icon || '')} ${escapeHtml(d.name)}
+        </button>`
+    ).join('');
+
+    if (quizFilterState.discipline !== 'all') {
+        await updateQuizTopics(quizFilterState.discipline);
     }
 }
 
-async function updateQuizTopics() {
-    const disciplineId = document.getElementById('quiz-discipline').value;
+function selectQuizDiscipline(id, el) {
+    quizFilterState.discipline = id;
+    document.querySelectorAll('#quiz-discipline-chips .filter-chip').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    updateQuizTopics(id);
+}
+
+function selectDifficulty(value, el) {
+    quizFilterState.difficulty = value;
+    document.querySelectorAll('#quiz-difficulty-segmented .segmented-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+}
+
+async function updateQuizTopics(disciplineId) {
     const select = document.getElementById('quiz-topic');
     select.innerHTML = '<option value="all">Все темы</option>';
-    if (disciplineId !== 'all') {
+    if (disciplineId && disciplineId !== 'all') {
         const data = await api(`/api/discipline-topics/${disciplineId}`);
         if (data) data.forEach(t => {
             select.innerHTML += `<option value="${t.id}">${escapeHtml(t.name)}</option>`;
@@ -423,9 +530,9 @@ async function updateQuizTopics() {
 
 async function startQuiz() {
     state.filters = {
-        discipline: document.getElementById('quiz-discipline').value,
+        discipline: quizFilterState.discipline,
         topic: document.getElementById('quiz-topic').value,
-        difficulty: document.getElementById('quiz-difficulty').value
+        difficulty: quizFilterState.difficulty
     };
 
     let url = '/api/questions/random?limit=10';
