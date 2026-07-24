@@ -29,6 +29,13 @@ CORS(app)
 def index():
     return send_from_directory('web_app', 'index.html')
 
+@app.route('/health')
+def health():
+    """Лёгкий эндпоинт для внешнего пинга (UptimeRobot и т.п.),
+    чтобы сервис на бесплатном тарифе Render не засыпал.
+    Не трогает базу данных — отвечает мгновенно."""
+    return jsonify({'status': 'ok'})
+
 @app.route('/api/disciplines')
 def get_disciplines():
     conn = get_db()
@@ -132,7 +139,7 @@ def get_learning_materials():
         FROM learning_materials lm
         JOIN topics t ON t.id = lm.topic_id
         ORDER BY lm.order_num
-        LIMIT 20
+        LIMIT 100
     ''').fetchall()
     conn.close()
     return jsonify([dict(m) for m in materials])
