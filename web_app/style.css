@@ -447,6 +447,32 @@ button, select {
 /* ========================================
    ОБЩИЙ ХЕДЕР ЭКРАНОВ
    ======================================== */
+.logo-icon svg,
+.icon-btn svg,
+.menu-icon-badge svg,
+.daily-icon svg,
+.resume-icon svg,
+.discipline-chip .icon svg,
+.discipline-card .icon svg,
+.search-result-item .icon svg,
+.achievement .icon svg,
+.screen-header .header-icon svg {
+    display: block;
+    color: currentColor;
+}
+
+.logo-icon {
+    color: var(--gold-1);
+}
+
+.menu-icon-badge {
+    color: var(--hint);
+}
+
+.menu-card.primary .menu-icon-badge {
+    color: var(--gold-text);
+}
+
 .screen-header {
     display: flex;
     justify-content: space-between;
@@ -454,6 +480,18 @@ button, select {
     padding-bottom: 16px;
     margin-bottom: 18px;
     position: relative;
+}
+
+.screen-header h2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.screen-header .header-icon {
+    color: var(--gold-text);
+    display: flex;
 }
 
 .screen-header::after {
@@ -814,6 +852,16 @@ button, select {
     font-weight: 600;
 }
 
+.filter-chip .chip-icon {
+    display: inline-flex;
+    margin-right: 4px;
+    vertical-align: -3px;
+}
+
+.filter-chip .chip-icon svg {
+    display: block;
+}
+
 /* ========================================
    СЕГМЕНТИРОВАННЫЙ ВЫБОР СЛОЖНОСТИ
    ======================================== */
@@ -1043,9 +1091,11 @@ button, select {
 }
 
 .result-emoji {
-    font-size: 44px;
-    display: block;
-    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold-text);
+    margin-bottom: 14px;
 }
 
 .result-title {
@@ -1373,10 +1423,11 @@ button, select {
 }
 
 .empty-icon {
-    font-size: 32px;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: 12px;
-    opacity: 0.7;
+    opacity: 0.5;
 }
 
 .empty-state p {
