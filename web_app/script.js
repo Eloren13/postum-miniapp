@@ -38,6 +38,31 @@ let dailyQuestionData = null;
 let quizFilterState = { discipline: 'all', difficulty: 'all' };
 let searchDebounceTimer = null;
 
+// ===== ИКОНКИ =====
+// Единая система мелких line-иконок вместо эмодзи — по названию дисциплины.
+const DISCIPLINE_ICONS = {
+    'Литература': '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5c-1.6-1.4-4-1.9-7-1.2v13c3-.7 5.4-.2 7 1.2c1.6-1.4 4-1.9 7-1.2v-13c-3-.7-5.4-.2-7 1.2z"/><path d="M12 6.5v13"/></svg>',
+    'История': '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 20h16M5 20V8M19 20V8M3 8l9-5l9 5M8 8v9M12 8v9M16 8v9"/></svg>',
+    'Философия': '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="10" r="6"/><path d="M9.5 21h5M10.3 18h3.4M9 8.5c1-1.2 4-1.2 5 0c.6.8.2 2-1 2.7c-.8.5-1 1-1 1.8"/></svg>',
+    'Психология': '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8 8.5c1.8 1.6-1.6 3.4 0 5c1.8 1.6-1.6 3.4 0 5"/></svg>',
+    'Социология': '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="2.6"/><circle cx="16.5" cy="9" r="2.1"/><path d="M3.5 20c0-3.3 2.4-5.8 5.5-5.8s5.5 2.5 5.5 5.8M14.5 20c0-2.6 1.7-4.6 4-4.6s4 2 4 4.6"/></svg>',
+    'Музыка': '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17V5.5l10-1.8V15"/><circle cx="6.5" cy="17" r="2.5" fill="currentColor" stroke="none"/><circle cx="16.5" cy="15" r="2.5" fill="currentColor" stroke="none"/></svg>',
+    'Живопись': '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 000 18c1.1 0 1.8-.6 1.8-1.5c0-.5-.2-.9-.5-1.2c-.4-.4-.1-1.3.7-1.3h1.8A4.2 4.2 0 0020 13c0-5.5-4-10-8-10z"/><circle cx="8" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9.5" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="7.5" r="1" fill="currentColor" stroke="none"/></svg>',
+    'Скульптура': '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3"/><path d="M7 20c0-4 2-7 5-7s5 3 5 7"/><path d="M5.5 20.5h13"/></svg>',
+    'Театр': '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="7.5" ry="8.5"/><rect x="8.3" y="9.3" width="1.6" height="2.4" rx="0.4" fill="currentColor" stroke="none"/><rect x="14.1" y="9.3" width="1.6" height="2.4" rx="0.4" fill="currentColor" stroke="none"/><path d="M9 16h6"/></svg>',
+};
+const DEFAULT_DISCIPLINE_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5c-1.6-1.4-4-1.9-7-1.2v13c3-.7 5.4-.2 7 1.2c1.6-1.4 4-1.9 7-1.2v-13c-3-.7-5.4-.2-7 1.2z"/></svg>';
+
+const ICON_LOCK = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="10.5" width="13" height="9" rx="1.8"/><path d="M8 10.5V7a4 4 0 018 0v3.5"/></svg>';
+const ICON_MEDAL = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l-1.2 6.5L18 12l-6 8l-6-8l3.2-2.5z"/></svg>';
+const ICON_TARGET = '<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg>';
+const ICON_BOOK = '<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5c-1.6-1.4-4-1.9-7-1.2v13c3-.7 5.4-.2 7 1.2c1.6-1.4 4-1.9 7-1.2v-13c-3-.7-5.4-.2-7 1.2z"/></svg>';
+const ICON_TROPHY = '<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v4a5 5 0 01-10 0V4z"/><path d="M7 5H4a3 3 0 003 3M17 5h3a3 3 0 01-3 3M9.5 14v2.5M14.5 14v2.5M8 20h8M9 20c0-1.7.7-2.5 3-2.5s3 .8 3 2.5"/></svg>';
+
+function disciplineIconSvg(name) {
+    return DISCIPLINE_ICONS[name] || DEFAULT_DISCIPLINE_ICON;
+}
+
 // Карта: какой экран открыть по нажатию аппаратной/программной кнопки
 // "Назад" в Telegram, в зависимости от того, что сейчас на экране.
 const backHandlers = {
@@ -71,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = tg.initDataUnsafe.user.first_name;
         if (name) {
             const el = document.getElementById('greeting-title');
-            if (el) el.textContent = `👋 Привет, ${escapeHtml(name)}!`;
+            if (el) el.textContent = `Привет, ${escapeHtml(name)}!`;
         }
     }
 
@@ -150,8 +175,10 @@ function toast(message, type = 'info') {
     }, 3000);
 }
 
-function emptyState(message, icon = '📭') {
-    return `<div class="empty-state"><span class="empty-icon">${icon}</span><p>${escapeHtml(message)}</p></div>`;
+const ICON_EMPTY = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="1.5"/><path d="M4 11h16M9 11v-.5A3 3 0 0112 7.5a3 3 0 013 3.5"/></svg>';
+
+function emptyState(message) {
+    return `<div class="empty-state"><span class="empty-icon">${ICON_EMPTY}</span><p>${escapeHtml(message)}</p></div>`;
 }
 
 function skeletonGrid(count = 4) {
@@ -238,11 +265,11 @@ async function loadDailyQuestion() {
     const btn = document.getElementById('daily-btn');
     const answeredToday = user.last_daily_date === todayStr();
 
-    document.getElementById('daily-streak').textContent = `Серия: ${user.daily_streak || 0} 🔥`;
+    document.getElementById('daily-streak').textContent = `Серия: ${user.daily_streak || 0}`;
 
     if (answeredToday) {
         document.getElementById('daily-question').textContent = 'Ты уже ответил на сегодняшний вопрос — заходи завтра!';
-        btn.textContent = '✅ Выполнено сегодня';
+        btn.textContent = 'Выполнено сегодня';
         btn.disabled = true;
         return;
     }
@@ -298,7 +325,7 @@ async function loadSummary() {
         container.innerHTML = data.disciplines.map(d => {
             const pct = d.topics_total ? Math.round((d.topics_completed / d.topics_total) * 100) : 0;
             return `<div class="discipline-chip ${pct >= 100 ? 'done' : ''}" onclick="haptic('light'); showSections(${d.id})">
-                <span class="icon">${escapeHtml(d.icon || '📚')}</span>
+                <span class="icon">${disciplineIconSvg(d.name)}</span>
                 <div class="name">${escapeHtml(d.name)}</div>
                 <div class="chip-progress-track"><div class="chip-progress-fill" style="width:${pct}%"></div></div>
                 <span class="chip-progress-label">${d.topics_completed}/${d.topics_total}</span>
@@ -311,7 +338,7 @@ async function loadSummary() {
     const resumeCard = document.getElementById('resume-card');
     const greetingBlock = document.getElementById('greeting-block');
     if (data.last_topic) {
-        document.getElementById('resume-icon').textContent = data.last_topic.icon || '📖';
+        document.getElementById('resume-icon').innerHTML = disciplineIconSvg(data.last_topic.discipline_name);
         document.getElementById('resume-topic').textContent = data.last_topic.topic_name;
         document.getElementById('resume-discipline').textContent = data.last_topic.discipline_name;
         resumeCard.dataset.topicId = data.last_topic.id;
@@ -347,7 +374,7 @@ async function runSearch(query) {
     if (data.length) {
         resultsEl.innerHTML = data.map(t =>
             `<div class="search-result-item" onclick="haptic('light'); openSearchResult(${t.id})">
-                <span class="icon">${escapeHtml(t.icon || '📚')}</span>
+                <span class="icon">${disciplineIconSvg(t.discipline_name)}</span>
                 <div>
                     <div class="name">${escapeHtml(t.name)}</div>
                     <div class="discipline">${escapeHtml(t.discipline_name)}</div>
@@ -380,13 +407,13 @@ async function loadDisciplines() {
     if (data?.length) {
         container.innerHTML = data.map(d =>
             `<div class="discipline-card" onclick="haptic('light'); showSections(${d.id})">
-                <span class="icon">${escapeHtml(d.icon || '📚')}</span>
+                <span class="icon">${disciplineIconSvg(d.name)}</span>
                 <div class="name">${escapeHtml(d.name)}</div>
                 <div class="desc">${escapeHtml(d.description || '')}</div>
             </div>`
         ).join('');
     } else {
-        container.innerHTML = emptyState('Дисциплины пока не добавлены.', '📚');
+        container.innerHTML = emptyState('Дисциплины пока не добавлены.');
     }
 }
 
@@ -411,7 +438,7 @@ async function showSections(id) {
                 </div>`
             ).join('');
         } else {
-            container.innerHTML = emptyState('В этой дисциплине пока нет разделов.', '📂');
+            container.innerHTML = emptyState('В этой дисциплине пока нет разделов.');
         }
     }
 }
@@ -433,7 +460,7 @@ async function showTopics(id) {
                 </div>`
             ).join('');
         } else {
-            container.innerHTML = emptyState('В этом разделе пока нет тем.', '📄');
+            container.innerHTML = emptyState('В этом разделе пока нет тем.');
         }
     }
 }
@@ -460,7 +487,7 @@ async function loadLearning() {
             </div>`
         ).join('');
     } else {
-        container.innerHTML = emptyState('Обучающих материалов пока нет.', '📖');
+        container.innerHTML = emptyState('Обучающих материалов пока нет.');
     }
 }
 
@@ -491,13 +518,14 @@ async function setupFilters() {
     if (!data) return;
 
     const container = document.getElementById('quiz-discipline-chips');
-    const chips = [{ id: 'all', name: 'Все', icon: '✦' }, ...data];
-    container.innerHTML = chips.map(d =>
-        `<button type="button" class="filter-chip ${d.id === quizFilterState.discipline || (d.id === 'all' && quizFilterState.discipline === 'all') ? 'active' : ''}"
-            data-value="${d.id}" onclick="haptic('selection'); selectQuizDiscipline('${d.id}', this)">
-            ${escapeHtml(d.icon || '')} ${escapeHtml(d.name)}
-        </button>`
-    ).join('');
+    const allActive = quizFilterState.discipline === 'all';
+    container.innerHTML = `<button type="button" class="filter-chip ${allActive ? 'active' : ''}" data-value="all" onclick="haptic('selection'); selectQuizDiscipline('all', this)">Все</button>` +
+        data.map(d =>
+            `<button type="button" class="filter-chip ${String(d.id) === String(quizFilterState.discipline) ? 'active' : ''}"
+                data-value="${d.id}" onclick="haptic('selection'); selectQuizDiscipline('${d.id}', this)">
+                <span class="chip-icon">${disciplineIconSvg(d.name)}</span>${escapeHtml(d.name)}
+            </button>`
+        ).join('');
 
     if (quizFilterState.discipline !== 'all') {
         await updateQuizTopics(quizFilterState.discipline);
@@ -580,8 +608,8 @@ function showQuestion() {
     document.getElementById('question-counter').textContent = `${state.currentIndex + 1}/${state.questions.length}`;
     document.getElementById('progress-fill').style.width = `${((state.currentIndex + 1) / state.questions.length) * 100}%`;
     document.getElementById('question-text').textContent = q.question;
-    document.getElementById('question-topic').textContent = `📚 ${q.topic_name || 'Тема'}`;
-    document.getElementById('question-difficulty').textContent = '⭐'.repeat(q.difficulty || 1);
+    document.getElementById('question-topic').textContent = q.topic_name || 'Тема';
+    document.getElementById('question-difficulty').textContent = '●'.repeat(q.difficulty || 1) + '○'.repeat(3 - (q.difficulty || 1));
     document.getElementById('question-explanation').style.display = 'none';
 
     const container = document.getElementById('options-container');
@@ -621,7 +649,7 @@ function selectAnswer(selected, correct) {
     if (q.explanation) {
         const el = document.getElementById('question-explanation');
         el.style.display = 'block';
-        el.textContent = '💡 ' + q.explanation;
+        el.textContent = q.explanation;
     }
 
     saveProgress(q.id, isCorrect);
@@ -638,23 +666,23 @@ function showResult() {
     const correct = state.correctCount;
     const pct = total ? Math.round((correct / total) * 100) : 0;
 
-    let emoji = '📚', title = 'Хороший результат!';
-    if (pct >= 90) { emoji = '🏆'; title = 'Блестяще! Вы — эрудит!'; }
-    else if (pct >= 70) { emoji = '⭐'; title = 'Отлично! Продолжайте!'; }
-    else if (pct >= 50) { emoji = '📖'; title = 'Неплохо! Учитесь дальше.'; }
-    else { emoji = '💪'; title = 'Ничего страшного! Попробуйте снова.'; }
+    let icon = ICON_BOOK, title = 'Хороший результат!';
+    if (pct >= 90) { icon = ICON_TROPHY; title = 'Блестяще! Вы — эрудит!'; }
+    else if (pct >= 70) { icon = ICON_MEDAL; title = 'Отлично! Продолжайте!'; }
+    else if (pct >= 50) { icon = ICON_BOOK; title = 'Неплохо! Учитесь дальше.'; }
+    else { icon = ICON_TARGET; title = 'Ничего страшного! Попробуйте снова.'; }
 
     if (state.isDaily) {
         title = correct > 0 ? 'Вызов дня пройден!' : 'В следующий раз получится!';
     }
 
-    document.getElementById('result-emoji').textContent = emoji;
+    document.getElementById('result-emoji').innerHTML = icon;
     document.getElementById('result-title').textContent = title;
     document.getElementById('result-stats').innerHTML = `
-        <div class="stat-row"><span class="label">✅ Правильных ответов</span><span class="value">${correct}/${total}</span></div>
-        <div class="stat-row"><span class="label">🎯 Точность</span><span class="value">${pct}%</span></div>
-        <div class="stat-row"><span class="label">⭐ Заработано очков</span><span class="value">${state.score}</span></div>
-        <div class="stat-row"><span class="label">⚡ Получено XP</span><span class="value">+${correct * 15}</span></div>
+        <div class="stat-row"><span class="label">Правильных ответов</span><span class="value">${correct}/${total}</span></div>
+        <div class="stat-row"><span class="label">Точность</span><span class="value">${pct}%</span></div>
+        <div class="stat-row"><span class="label">Заработано очков</span><span class="value">${state.score}</span></div>
+        <div class="stat-row"><span class="label">Получено XP</span><span class="value">+${correct * 15}</span></div>
     `;
 
     user.score = (user.score || 0) + state.score;
@@ -689,15 +717,15 @@ async function loadAchievements() {
     if (data?.length) {
         container.innerHTML = data.map(a =>
             `<div class="achievement ${a.unlocked ? 'unlocked' : 'locked'}">
-                <span class="icon">${a.unlocked ? escapeHtml(a.icon || '🏅') : '🔒'}</span>
+                <span class="icon">${a.unlocked ? ICON_MEDAL : ICON_LOCK}</span>
                 <div class="info">
                     <div class="name">${escapeHtml(a.name)}</div>
-                    <div class="desc">${escapeHtml(a.description)} ${a.unlocked ? '✅' : `(${a.progress || 0}/${a.condition_value})`}</div>
+                    <div class="desc">${escapeHtml(a.description)} ${a.unlocked ? '' : `(${a.progress || 0}/${a.condition_value})`}</div>
                 </div>
             </div>`
         ).join('');
     } else {
-        container.innerHTML = emptyState('Достижения пока не добавлены.', '🏅');
+        container.innerHTML = emptyState('Достижения пока не добавлены.');
     }
 }
 
@@ -713,7 +741,7 @@ async function checkAchievements() {
         })
     });
     if (data?.unlocked?.length) {
-        data.unlocked.forEach(name => toast(`🏅 Новое достижение: ${name}!`, 'success'));
+        data.unlocked.forEach(name => toast(`Новое достижение: ${name}`, 'success'));
     }
 }
 
@@ -722,13 +750,13 @@ function showStats() {
     showScreen('stats-screen');
     const acc = user.total_answers ? Math.round((user.correct_answers / user.total_answers) * 100) : 0;
     document.getElementById('stats-container').innerHTML = [
-        { label: '🏆 Всего очков', value: user.score || 0 },
-        { label: '📈 Уровень', value: user.level || 1 },
-        { label: '⚡ Опыт (XP)', value: user.xp || 0 },
-        { label: '✅ Правильных ответов', value: user.correct_answers || 0 },
-        { label: '📝 Всего ответов', value: user.total_answers || 0 },
-        { label: '🎯 Точность', value: `${acc}%` },
-        { label: '🔥 Серия дней', value: user.daily_streak || 0 }
+        { label: 'Всего очков', value: user.score || 0 },
+        { label: 'Уровень', value: user.level || 1 },
+        { label: 'Опыт (XP)', value: user.xp || 0 },
+        { label: 'Правильных ответов', value: user.correct_answers || 0 },
+        { label: 'Всего ответов', value: user.total_answers || 0 },
+        { label: 'Точность', value: `${acc}%` },
+        { label: 'Серия дней подряд', value: user.daily_streak || 0 }
     ].map(s =>
         `<div class="stat-row"><span class="label">${s.label}</span><span class="value">${s.value}</span></div>`
     ).join('');
