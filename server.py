@@ -139,7 +139,7 @@ def get_learning_materials():
         FROM learning_materials lm
         JOIN topics t ON t.id = lm.topic_id
         ORDER BY lm.order_num
-        LIMIT 100
+        LIMIT 500
     ''').fetchall()
     conn.close()
     return jsonify([dict(m) for m in materials])
