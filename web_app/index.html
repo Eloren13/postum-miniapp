@@ -1,468 +1,273 @@
-# server.py
-import os
-import threading
-import time
-import asyncio
-from flask import Flask, send_from_directory, jsonify, request
-from flask_cors import CORS
-import config
-from database import init_db, seed_database, get_db
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Арт-Квест</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=3">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- ===== ГЛАВНЫЙ ЭКРАН ===== -->
+        <div id="main-screen" class="screen active">
+            <!-- Хедер -->
+            <div class="header">
+                <div class="header-top">
+                    <div class="logo-wrapper">
+                        <span class="logo-icon">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M12 2l1.9 6.3L20 10l-6.1 1.7L12 18l-1.9-6.3L4 10l6.1-1.7z"/></svg>
+                        </span>
+                        <span class="logo-text">Арт-Квест</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="icon-btn" onclick="haptic('light'); showStats()" aria-label="Статистика">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 20V11M12 20V4M19 20v-7"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="user-score">0</span>
+                        <span class="stat-icon">очки</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="user-level">1</span>
+                        <span class="stat-icon">уровень</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="user-accuracy">—</span>
+                        <span class="stat-icon">точность</span>
+                    </div>
+                </div>
+                <div class="level-progress">
+                    <div class="level-progress-track"><div class="level-progress-fill" id="level-progress-fill" style="width:0%"></div></div>
+                    <span class="level-progress-label" id="level-progress-label">0 XP · до уровня 2 осталось 100</span>
+                </div>
+            </div>
 
-# ============================================
-# 1. ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ
-# ============================================
-print("🔄 Инициализация базы данных...")
-init_db()
-seed_database()
+            <!-- Поиск -->
+            <div class="search-wrapper">
+                <span class="search-icon">⌕</span>
+                <input type="text" id="search-input" class="search-input" placeholder="Найти тему: художник, философ, эпоха…" oninput="onSearchInput(this.value)" onfocus="onSearchInput(this.value)">
+                <div id="search-results" class="search-results"></div>
+            </div>
 
-# ============================================
-# 2. СОЗДАНИЕ FLASK ПРИЛОЖЕНИЯ
-# ============================================
-app = Flask(__name__, static_folder='web_app', static_url_path='')
-CORS(app)
+            <!-- Продолжить с прошлого раза -->
+            <div id="resume-card" class="resume-card" style="display:none;" onclick="haptic('light'); resumeLastTopic()">
+                <span class="resume-label">Продолжить</span>
+                <div class="resume-body">
+                    <span class="resume-icon" id="resume-icon"></span>
+                    <div class="resume-text">
+                        <div class="resume-topic" id="resume-topic">—</div>
+                        <div class="resume-discipline" id="resume-discipline">—</div>
+                    </div>
+                    <span class="resume-arrow">→</span>
+                </div>
+            </div>
 
-# ============================================
-# 3. ВСЕ МАРШРУТЫ
-# ============================================
+            <!-- Приветствие -->
+            <div class="greeting" id="greeting-block">
+                <h2 id="greeting-title">Добро пожаловать!</h2>
+                <p>Изучай искусство, литературу и историю в игровом формате</p>
+            </div>
 
-@app.route('/')
-def index():
-    return send_from_directory('web_app', 'index.html')
+            <!-- Основное меню -->
+            <div class="menu-grid">
+                <div class="menu-card primary" onclick="haptic('light'); showQuiz()">
+                    <div class="menu-icon-badge"><svg class="menu-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg></div>
+                    <div class="menu-label">Викторина</div>
+                    <div class="menu-badge">10 вопросов</div>
+                </div>
+                <div class="menu-card" onclick="haptic('light'); showLearning()">
+                    <div class="menu-icon-badge"><svg class="menu-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5c-1.6-1.4-4-1.9-7-1.2v13c3-.7 5.4-.2 7 1.2c1.6-1.4 4-1.9 7-1.2v-13c-3-.7-5.4-.2-7 1.2z"/><path d="M12 6.5v13"/></svg></div>
+                    <div class="menu-label">Обучение</div>
+                    <div class="menu-badge">Статьи</div>
+                </div>
+                <div class="menu-card" onclick="haptic('light'); showDisciplines()">
+                    <div class="menu-icon-badge"><svg class="menu-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="3.5" width="7" height="7" rx="1.3"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.3"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.3"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.3"/></svg></div>
+                    <div class="menu-label">Дисциплины</div>
+                    <div class="menu-badge">10 дисциплин</div>
+                </div>
+                <div class="menu-card" onclick="haptic('light'); showAchievements()">
+                    <div class="menu-icon-badge"><svg class="menu-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l-1.2 6.5L18 12l-6 8l-6-8l3.2-2.5z"/></svg></div>
+                    <div class="menu-label">Достижения</div>
+                    <div class="menu-badge">Награды</div>
+                </div>
+            </div>
 
-@app.route('/health')
-def health():
-    """Лёгкий эндпоинт для внешнего пинга (UptimeRobot и т.п.),
-    чтобы сервис на бесплатном тарифе Render не засыпал.
-    Не трогает базу данных — отвечает мгновенно."""
-    return jsonify({'status': 'ok'})
+            <!-- Ежедневный вызов -->
+            <div class="daily-card">
+                <div class="daily-header">
+                    <div>
+                        <span class="daily-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2c-2.5 4-5 7-5 11a5 5 0 0010 0c0-2-.8-3.6-2-5c0 2-1.2 3-2 2.2c-.8-.8.2-2.6-1-8.2z"/></svg></span>
+                        <span class="daily-title">Вопрос дня</span>
+                    </div>
+                    <span class="daily-streak" id="daily-streak">Серия: 0</span>
+                </div>
+                <p class="daily-question" id="daily-question">Загрузка вопроса…</p>
+                <button class="daily-btn" id="daily-btn" onclick="haptic('medium'); startDaily()">Ответить на вызов</button>
+            </div>
 
-@app.route('/api/disciplines')
-def get_disciplines():
-    conn = get_db()
-    disciplines = conn.execute('SELECT * FROM disciplines ORDER BY name').fetchall()
-    conn.close()
-    return jsonify([dict(d) for d in disciplines])
+            <!-- Дисциплины и прогресс -->
+            <div class="quick-section">
+                <div class="section-header">
+                    <h3>Дисциплины</h3>
+                    <button class="see-all" onclick="haptic('light'); showDisciplines()">Все →</button>
+                </div>
+                <div id="discipline-progress-container" class="discipline-strip"></div>
+            </div>
+        </div>
 
-@app.route('/api/sections/<int:discipline_id>')
-def get_sections(discipline_id):
-    conn = get_db()
-    sections = conn.execute('''
-        SELECT s.*, COUNT(t.id) as topic_count
-        FROM sections s
-        LEFT JOIN topics t ON t.section_id = s.id
-        WHERE s.discipline_id = ?
-        GROUP BY s.id
-        ORDER BY s.order_num
-    ''', (discipline_id,)).fetchall()
-    discipline = conn.execute(
-        'SELECT name FROM disciplines WHERE id = ?',
-        (discipline_id,)
-    ).fetchone()
-    conn.close()
-    return jsonify({
-        'discipline_name': discipline['name'] if discipline else '',
-        'sections': [dict(s) for s in sections]
-    })
+        <!-- ===== ЭКРАН ВИКТОРИНЫ ===== -->
+        <div id="quiz-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="haptic('light'); goHome()" aria-label="Назад">‹</button>
+                <h2><span class="header-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg></span>Викторина</h2>
+                <div class="header-spacer"></div>
+            </div>
+            <div class="quiz-filters">
+                <label class="filter-label">Дисциплина</label>
+                <div id="quiz-discipline-chips" class="chip-row"></div>
 
-@app.route('/api/topics/<int:section_id>')
-def get_topics(section_id):
-    conn = get_db()
-    topics = conn.execute('''
-        SELECT t.*, COUNT(q.id) as question_count 
-        FROM topics t
-        LEFT JOIN questions q ON q.topic_id = t.id
-        WHERE t.section_id = ?
-        GROUP BY t.id
-        ORDER BY t.order_num
-    ''', (section_id,)).fetchall()
-    section = conn.execute(
-        'SELECT name FROM sections WHERE id = ?',
-        (section_id,)
-    ).fetchone()
-    conn.close()
-    return jsonify({
-        'section_name': section['name'] if section else '',
-        'topics': [dict(t) for t in topics]
-    })
+                <label class="filter-label">Тема</label>
+                <select id="quiz-topic">
+                    <option value="all">Все темы</option>
+                </select>
 
-@app.route('/api/questions/random')
-def get_random_questions():
-    limit = int(request.args.get('limit', 10))
-    topic_id = request.args.get('topic')
-    discipline_id = request.args.get('discipline')
-    difficulty = request.args.get('difficulty')
-    
-    conn = get_db()
-    query = '''
-        SELECT q.*, t.name as topic_name 
-        FROM questions q
-        LEFT JOIN topics t ON t.id = q.topic_id
-        LEFT JOIN sections s ON s.id = t.section_id
-        WHERE 1=1
-    '''
-    params = []
-    
-    if topic_id and topic_id != 'all':
-        query += ' AND q.topic_id = ?'
-        params.append(int(topic_id))
-    elif discipline_id and discipline_id != 'all':
-        query += ' AND s.discipline_id = ?'
-        params.append(int(discipline_id))
-    
-    if difficulty and difficulty != 'all':
-        query += ' AND q.difficulty = ?'
-        params.append(int(difficulty))
-    
-    query += ' ORDER BY RANDOM() LIMIT ?'
-    params.append(limit)
-    
-    questions = conn.execute(query, params).fetchall()
-    conn.close()
-    return jsonify([dict(q) for q in questions])
+                <label class="filter-label">Сложность</label>
+                <div id="quiz-difficulty-segmented" class="segmented">
+                    <button type="button" class="segmented-btn active" data-value="all" onclick="haptic('selection'); selectDifficulty('all', this)">Любая</button>
+                    <button type="button" class="segmented-btn" data-value="1" onclick="haptic('selection'); selectDifficulty('1', this)">● Лёгкая</button>
+                    <button type="button" class="segmented-btn" data-value="2" onclick="haptic('selection'); selectDifficulty('2', this)">●● Средняя</button>
+                    <button type="button" class="segmented-btn" data-value="3" onclick="haptic('selection'); selectDifficulty('3', this)">●●● Сложная</button>
+                </div>
 
-@app.route('/api/questions/topic/<int:topic_id>')
-def get_topic_questions(topic_id):
-    limit = int(request.args.get('limit', 10))
-    conn = get_db()
-    questions = conn.execute('''
-        SELECT q.*, t.name as topic_name 
-        FROM questions q
-        JOIN topics t ON t.id = q.topic_id
-        WHERE q.topic_id = ?
-        ORDER BY RANDOM() 
-        LIMIT ?
-    ''', (topic_id, limit)).fetchall()
-    conn.close()
-    return jsonify([dict(q) for q in questions])
+                <button class="start-btn" onclick="haptic('medium'); startQuiz()">Начать викторину</button>
+            </div>
+            <div id="quiz-container"></div>
+        </div>
 
-@app.route('/api/learning')
-def get_learning_materials():
-    conn = get_db()
-    materials = conn.execute('''
-        SELECT lm.*, t.name as topic_name, d.name as discipline_name, d.id as discipline_id
-        FROM learning_materials lm
-        JOIN topics t ON t.id = lm.topic_id
-        JOIN sections s ON s.id = t.section_id
-        JOIN disciplines d ON d.id = s.discipline_id
-        ORDER BY d.name, lm.order_num
-        LIMIT 500
-    ''').fetchall()
-    conn.close()
-    return jsonify([dict(m) for m in materials])
+        <!-- ===== ЭКРАН ВОПРОСА ===== -->
+        <div id="question-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="haptic('light'); confirmLeaveQuiz()" aria-label="Назад">‹</button>
+                <span id="question-counter" class="question-counter">1/10</span>
+                <div class="header-spacer"></div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-track">
+                    <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="question-card">
+                <div class="question-meta">
+                    <span id="question-topic" class="question-topic">Тема</span>
+                    <span id="question-difficulty" class="question-difficulty">●</span>
+                </div>
+                <h2 id="question-text" class="question-text">Вопрос загружается…</h2>
+                <div id="options-container" class="options-grid"></div>
+                <div id="question-explanation" class="explanation" style="display:none;"></div>
+            </div>
+        </div>
 
-@app.route('/api/material/<int:material_id>')
-def get_material(material_id):
-    conn = get_db()
-    material = conn.execute('''
-        SELECT lm.*, t.name as topic_name 
-        FROM learning_materials lm
-        JOIN topics t ON t.id = lm.topic_id
-        WHERE lm.id = ?
-    ''', (material_id,)).fetchone()
-    conn.close()
-    return jsonify(dict(material) if material else {})
+        <!-- ===== ЭКРАН РЕЗУЛЬТАТА ===== -->
+        <div id="result-screen" class="screen">
+            <div class="result-card">
+                <div id="result-emoji" class="result-emoji"></div>
+                <h2 id="result-title" class="result-title">Отличный результат!</h2>
+                <div id="result-stats" class="result-stats"></div>
+                <div class="result-actions">
+                    <button class="result-btn primary" onclick="haptic('medium'); startQuiz()">Ещё раз</button>
+                    <button class="result-btn secondary" onclick="haptic('light'); goHome()">На главную</button>
+                </div>
+            </div>
+        </div>
 
-@app.route('/api/daily')
-def get_daily():
-    conn = get_db()
-    question = conn.execute('''
-        SELECT q.*, t.name as topic_name 
-        FROM questions q
-        JOIN topics t ON t.id = q.topic_id
-        ORDER BY RANDOM() 
-        LIMIT 1
-    ''').fetchone()
-    conn.close()
-    return jsonify(dict(question) if question else {'question': 'Вопрос не найден'})
+        <!-- ===== ЭКРАН ОБУЧЕНИЯ ===== -->
+        <div id="learning-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="haptic('light'); goHome()" aria-label="Назад">‹</button>
+                <h2><span class="header-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5c-1.6-1.4-4-1.9-7-1.2v13c3-.7 5.4-.2 7 1.2c1.6-1.4 4-1.9 7-1.2v-13c-3-.7-5.4-.2-7 1.2z"/><path d="M12 6.5v13"/></svg></span>Обучение</h2>
+                <div class="header-spacer"></div>
+            </div>
+            <div class="search-wrapper learning-search">
+                <span class="search-icon">⌕</span>
+                <input type="text" id="learning-search-input" class="search-input" placeholder="Найти статью или тему…" oninput="filterLearning(this.value)">
+            </div>
+            <div id="learning-container" class="learning-list"></div>
+        </div>
 
-@app.route('/api/progress', methods=['POST'])
-def save_progress():
-    data = request.json
-    user_id = data.get('user_id')
-    question_id = data.get('question_id')
-    correct = data.get('correct', False)
 
-    conn = get_db()
-    topic = conn.execute(
-        'SELECT topic_id FROM questions WHERE id = ?',
-        (question_id,)
-    ).fetchone()
+        <!-- ===== ЭКРАН МАТЕРИАЛА ===== -->
+        <div id="material-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="haptic('light'); showLearning()" aria-label="Назад">‹</button>
+                <h2 id="material-title">Материал</h2>
+                <div class="header-spacer"></div>
+            </div>
+            <div id="material-content" class="material-content"></div>
+            <button class="start-btn" onclick="haptic('medium'); startQuizFromMaterial()">Проверить знания</button>
+        </div>
 
-    if topic:
-        topic_id = topic[0]
-        conn.execute('''
-            INSERT OR REPLACE INTO user_topic_progress 
-            (user_id, topic_id, correct_count, total_count, last_answered)
-            VALUES (?, ?, 
-                COALESCE((SELECT correct_count FROM user_topic_progress 
-                         WHERE user_id = ? AND topic_id = ?), 0) + ?,
-                COALESCE((SELECT total_count FROM user_topic_progress 
-                         WHERE user_id = ? AND topic_id = ?), 0) + 1,
-                datetime('now')
-            )
-        ''', (user_id, topic_id, user_id, topic_id, 1 if correct else 0,
-              user_id, topic_id))
+        <!-- ===== ЭКРАН ДИСЦИПЛИН ===== -->
+        <div id="disciplines-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="haptic('light'); goHome()" aria-label="Назад">‹</button>
+                <h2><span class="header-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="3.5" width="7" height="7" rx="1.3"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.3"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.3"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.3"/></svg></span>Дисциплины</h2>
+                <div class="header-spacer"></div>
+            </div>
+            <div id="disciplines-container" class="disciplines-grid"></div>
+        </div>
 
-        # Тема считается пройденной, когда пользователь хотя бы раз
-        # ответил на все вопросы, которые для неё существуют.
-        total_questions = conn.execute(
-            'SELECT COUNT(*) FROM questions WHERE topic_id = ?', (topic_id,)
-        ).fetchone()[0]
-        conn.execute('''
-            UPDATE user_topic_progress SET completed = 1
-            WHERE user_id = ? AND topic_id = ? AND total_count >= ?
-        ''', (user_id, topic_id, max(total_questions, 1)))
+        <!-- ===== ЭКРАН РАЗДЕЛОВ ===== -->
+        <div id="sections-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="haptic('light'); showDisciplines()" aria-label="Назад">‹</button>
+                <h2 id="sections-title">Разделы</h2>
+                <div class="header-spacer"></div>
+            </div>
+            <div id="sections-container" class="sections-grid"></div>
+        </div>
 
-    conn.commit()
-    conn.close()
-    return jsonify({'status': 'ok'})
+        <!-- ===== ЭКРАН ТЕМ ===== -->
+        <div id="topics-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="haptic('light'); showScreen('sections-screen')" aria-label="Назад">‹</button>
+                <h2 id="topics-title">Темы</h2>
+                <div class="header-spacer"></div>
+            </div>
+            <div id="topics-container" class="topics-grid"></div>
+        </div>
 
-@app.route('/api/summary')
-def get_summary():
-    """Сводка для главной страницы: прогресс по дисциплинам и последняя тема."""
-    user_id = request.args.get('user_id')
-    conn = get_db()
+        <!-- ===== ЭКРАН СТАТИСТИКИ ===== -->
+        <div id="stats-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="haptic('light'); goHome()" aria-label="Назад">‹</button>
+                <h2><span class="header-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 20V11M12 20V4M19 20v-7"/></svg></span>Мой прогресс</h2>
+                <div class="header-spacer"></div>
+            </div>
+            <div id="stats-container" class="stats-card"></div>
+        </div>
 
-    disciplines = conn.execute('''
-        SELECT d.id, d.name, d.icon,
-               COUNT(DISTINCT t.id) as topics_total,
-               COUNT(DISTINCT CASE WHEN utp.completed = 1 THEN t.id END) as topics_completed
-        FROM disciplines d
-        LEFT JOIN sections s ON s.discipline_id = d.id
-        LEFT JOIN topics t ON t.section_id = s.id
-        LEFT JOIN user_topic_progress utp ON utp.topic_id = t.id AND utp.user_id = ?
-        GROUP BY d.id
-        ORDER BY d.name
-    ''', (user_id,)).fetchall()
+        <!-- ===== ЭКРАН ДОСТИЖЕНИЙ ===== -->
+        <div id="achievements-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" onclick="haptic('light'); goHome()" aria-label="Назад">‹</button>
+                <h2><span class="header-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l-1.2 6.5L18 12l-6 8l-6-8l3.2-2.5z"/></svg></span>Достижения</h2>
+                <div class="header-spacer"></div>
+            </div>
+            <div id="achievements-container" class="achievements-list"></div>
+        </div>
+    </div>
 
-    last_topic = None
-    if user_id:
-        row = conn.execute('''
-            SELECT t.id, t.name as topic_name, d.name as discipline_name, d.icon
-            FROM user_topic_progress utp
-            JOIN topics t ON t.id = utp.topic_id
-            JOIN sections s ON s.id = t.section_id
-            JOIN disciplines d ON d.id = s.discipline_id
-            WHERE utp.user_id = ?
-            ORDER BY utp.last_answered DESC
-            LIMIT 1
-        ''', (user_id,)).fetchone()
-        if row:
-            last_topic = dict(row)
+    <div id="toast-container"></div>
 
-    conn.close()
-    return jsonify({
-        'disciplines': [dict(d) for d in disciplines],
-        'last_topic': last_topic
-    })
-
-@app.route('/api/search')
-def search():
-    """Поиск тем по названию/описанию — используется строкой поиска на главной."""
-    query = request.args.get('q', '').strip()
-    if len(query) < 2:
-        return jsonify([])
-
-    conn = get_db()
-    like = f'%{query}%'
-    rows = conn.execute('''
-        SELECT t.id, t.name, t.description, d.name as discipline_name, d.icon
-        FROM topics t
-        JOIN sections s ON s.id = t.section_id
-        JOIN disciplines d ON d.id = s.discipline_id
-        WHERE t.name LIKE ? OR t.description LIKE ? OR d.name LIKE ?
-        ORDER BY t.name
-        LIMIT 15
-    ''', (like, like, like)).fetchall()
-    conn.close()
-    return jsonify([dict(r) for r in rows])
-
-@app.route('/api/achievements')
-def get_achievements():
-    """Список достижений с учётом того, что уже разблокировано у этого пользователя."""
-    user_id = request.args.get('user_id')
-    correct_answers = int(request.args.get('correct_answers', 0))
-    score = int(request.args.get('score', 0))
-
-    conn = get_db()
-    achievements = conn.execute('SELECT * FROM achievements').fetchall()
-
-    unlocked_ids = set()
-    if user_id:
-        rows = conn.execute(
-            'SELECT achievement_id FROM user_achievements WHERE user_id = ?',
-            (user_id,)
-        ).fetchall()
-        unlocked_ids = {r['achievement_id'] for r in rows}
-
-    result = []
-    for a in achievements:
-        a = dict(a)
-        is_unlocked = a['id'] in unlocked_ids
-
-        progress = 0
-        if a['condition_type'] == 'correct_answers':
-            progress = correct_answers
-        elif a['condition_type'] == 'total_score':
-            progress = score
-        elif user_id and a['condition_type'] == 'topics_completed':
-            progress = conn.execute(
-                'SELECT COUNT(*) FROM user_topic_progress WHERE user_id = ? AND completed = 1',
-                (user_id,)
-            ).fetchone()[0]
-        elif user_id and a['condition_type'] == 'disciplines_completed':
-            progress = conn.execute('''
-                SELECT COUNT(DISTINCT s.discipline_id)
-                FROM user_topic_progress utp
-                JOIN topics t ON t.id = utp.topic_id
-                JOIN sections s ON s.id = t.section_id
-                WHERE utp.user_id = ? AND utp.total_count > 0
-            ''', (user_id,)).fetchone()[0]
-
-        a['unlocked'] = is_unlocked
-        a['progress'] = min(progress, a['condition_value'])
-        result.append(a)
-
-    conn.close()
-    return jsonify(result)
-
-@app.route('/api/discipline-topics/<int:discipline_id>')
-def get_discipline_topics(discipline_id):
-    conn = get_db()
-    topics = conn.execute('''
-        SELECT t.* FROM topics t
-        JOIN sections s ON s.id = t.section_id
-        WHERE s.discipline_id = ?
-        ORDER BY t.name
-    ''', (discipline_id,)).fetchall()
-    conn.close()
-    return jsonify([dict(t) for t in topics])
-
-@app.route('/api/topics/quick')
-def get_quick_topics():
-    conn = get_db()
-    topics = conn.execute('''
-        SELECT t.*, d.icon 
-        FROM topics t
-        JOIN sections s ON s.id = t.section_id
-        JOIN disciplines d ON d.id = s.discipline_id
-        ORDER BY RANDOM() 
-        LIMIT 4
-    ''').fetchall()
-    conn.close()
-    return jsonify({'topics': [dict(t) for t in topics]})
-
-@app.route('/api/check-achievements', methods=['POST'])
-def check_achievements():
-    data = request.json
-    user_id = data.get('id')
-    
-    conn = get_db()
-    achievements = conn.execute('SELECT * FROM achievements').fetchall()
-    unlocked = []
-    
-    for a in achievements:
-        existing = conn.execute(
-            'SELECT * FROM user_achievements WHERE user_id = ? AND achievement_id = ?',
-            (user_id, a['id'])
-        ).fetchone()
-        
-        if existing:
-            continue
-        
-        condition_type = a['condition_type']
-        condition_value = a['condition_value']
-        progress = 0
-        
-        if condition_type == 'correct_answers':
-            progress = data.get('correct_answers', 0)
-        elif condition_type == 'topics_completed':
-            progress = conn.execute(
-                'SELECT COUNT(*) FROM user_topic_progress WHERE user_id = ? AND completed = 1',
-                (user_id,)
-            ).fetchone()[0]
-        elif condition_type == 'disciplines_completed':
-            progress = conn.execute('''
-                SELECT COUNT(DISTINCT s.discipline_id) 
-                FROM user_topic_progress utp
-                JOIN topics t ON t.id = utp.topic_id
-                JOIN sections s ON s.id = t.section_id
-                WHERE utp.user_id = ? AND utp.total_count > 0
-            ''', (user_id,)).fetchone()[0]
-        elif condition_type == 'total_score':
-            progress = data.get('score', 0)
-        
-        if progress >= condition_value:
-            conn.execute(
-                'INSERT INTO user_achievements (user_id, achievement_id, unlocked_at) VALUES (?, ?, datetime("now"))',
-                (user_id, a['id'])
-            )
-            unlocked.append(a['name'])
-    
-    conn.commit()
-    conn.close()
-    return jsonify({'unlocked': unlocked})
-
-# ============================================
-# 4. ЗАПУСК БОТА С ПРАВИЛЬНЫМ EVENT LOOP
-# ============================================
-
-def run_bot():
-    """Запуск Telegram бота с правильным event loop для Python 3.14"""
-    try:
-        from telegram.ext import Application, CommandHandler
-        from bot import start, handle_web_app_data
-
-        print("🤖 Запуск Telegram бота...")
-
-        # Создаем новый event loop для этого потока
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-        # Переиспользуем обработчики из bot.py — один источник правды
-        bot_app = Application.builder().token(config.BOT_TOKEN).build()
-        bot_app.add_handler(CommandHandler("start", start))
-        bot_app.add_handler(CommandHandler("help", start))
-        bot_app.add_handler(CommandHandler("play", start))
-
-        print("🚀 Бот запущен и готов к работе!")
-        
-        # Запускаем бота в созданном event loop
-        loop.run_until_complete(bot_app.initialize())
-        loop.run_until_complete(bot_app.start())
-        loop.run_until_complete(bot_app.updater.start_polling())
-        
-        # Держим бота запущенным
-        loop.run_forever()
-        
-    except Exception as e:
-        print(f"❌ Ошибка при запуске бота: {e}")
-        import traceback
-        traceback.print_exc()
-
-# ============================================
-# 5. ЗАПУСКАЕМ БОТА В ФОНОВОМ ПОТОКЕ
-# ============================================
-
-print("🔄 Запуск бота в фоновом потоке...")
-bot_thread = threading.Thread(target=run_bot, daemon=True)
-bot_thread.start()
-
-# Даем боту время на запуск
-time.sleep(3)
-print("✅ Бот запущен!")
-
-# ============================================
-# 6. Flask приложение готово
-# ============================================
-
-print("🌐 Flask приложение готово!")
-
-# ============================================
-# 7. ЛОКАЛЬНЫЙ ЗАПУСК
-# На проде (Render и т.п.) сервер запускается через gunicorn:
-#   gunicorn server:app
-# Эта часть нужна только для `python3 server.py` при разработке.
-# ============================================
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=config.PORT, debug=config.DEBUG)
+    <script src="script.js?v=3"></script>
+</body>
+</html>
