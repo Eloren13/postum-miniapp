@@ -456,6 +456,7 @@ button, select {
 .discipline-card .icon svg,
 .search-result-item .icon svg,
 .achievement .icon svg,
+.learning-group-header .icon svg,
 .screen-header .header-icon svg {
     display: block;
     color: currentColor;
@@ -742,6 +743,8 @@ button, select {
     overflow-x: auto;
     padding-bottom: 4px;
     -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
 }
 
 .discipline-strip::-webkit-scrollbar {
@@ -819,6 +822,8 @@ button, select {
     overflow-x: auto;
     padding-bottom: 2px;
     -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
 }
 
 .chip-row::-webkit-scrollbar {
@@ -1216,7 +1221,8 @@ button, select {
     line-height: 1.35;
 }
 
-.topic-card .count {
+.topic-card .count,
+.section-card .count {
     font-family: var(--font-mono);
     font-size: 10px;
     color: var(--hint);
@@ -1228,17 +1234,89 @@ button, select {
 /* ========================================
    ОБУЧЕНИЕ
    ======================================== */
+.learning-search {
+    margin-bottom: 16px;
+}
+
 .learning-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.learning-item {
-    background: var(--surface);
+.learning-group {
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-md);
-    padding: 15px 16px;
+    overflow: hidden;
+    background: var(--surface);
+}
+
+.learning-group-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text);
+}
+
+.learning-group-header:active {
+    background: var(--surface-2);
+}
+
+.learning-group-header .icon {
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
+.learning-group-header .name {
+    flex: 1;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.learning-group-header .count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--hint);
+    background: var(--surface-2);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+}
+
+.learning-group-header .chevron {
+    color: var(--gold-text);
+    font-size: 16px;
+    transform: rotate(90deg);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.learning-group-header .chevron.open {
+    transform: rotate(-90deg);
+}
+
+.learning-group-body {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 10px 10px;
+    animation: fadeIn 0.2s ease;
+}
+
+.learning-group-body.open {
+    display: flex;
+}
+
+.learning-item {
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    padding: 13px 14px;
     cursor: pointer;
     transition: all 0.15s;
     display: flex;
@@ -1254,11 +1332,11 @@ button, select {
 
 .learning-item .title {
     font-weight: 600;
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .learning-item .desc {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--hint);
     margin-top: 2px;
 }
@@ -1355,6 +1433,27 @@ button, select {
     font-size: 12px;
     color: var(--hint);
     margin-top: 2px;
+}
+
+.achievement-progress-track {
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.achievement-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-2), var(--gold-1));
+}
+
+.achievement-progress-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--hint);
+    margin-top: 4px;
 }
 
 .achievement.locked {
