@@ -46,10 +46,14 @@ def get_disciplines():
 @app.route('/api/sections/<int:discipline_id>')
 def get_sections(discipline_id):
     conn = get_db()
-    sections = conn.execute(
-        'SELECT * FROM sections WHERE discipline_id = ? ORDER BY order_num',
-        (discipline_id,)
-    ).fetchall()
+    sections = conn.execute('''
+        SELECT s.*, COUNT(t.id) as topic_count
+        FROM sections s
+        LEFT JOIN topics t ON t.section_id = s.id
+        WHERE s.discipline_id = ?
+        GROUP BY s.id
+        ORDER BY s.order_num
+    ''', (discipline_id,)).fetchall()
     discipline = conn.execute(
         'SELECT name FROM disciplines WHERE id = ?',
         (discipline_id,)
@@ -135,10 +139,12 @@ def get_topic_questions(topic_id):
 def get_learning_materials():
     conn = get_db()
     materials = conn.execute('''
-        SELECT lm.*, t.name as topic_name 
+        SELECT lm.*, t.name as topic_name, d.name as discipline_name, d.id as discipline_id
         FROM learning_materials lm
         JOIN topics t ON t.id = lm.topic_id
-        ORDER BY lm.order_num
+        JOIN sections s ON s.id = t.section_id
+        JOIN disciplines d ON d.id = s.discipline_id
+        ORDER BY d.name, lm.order_num
         LIMIT 500
     ''').fetchall()
     conn.close()
