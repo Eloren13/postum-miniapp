@@ -436,6 +436,7 @@ async function showSections(id) {
                 `<div class="section-card" onclick="haptic('light'); showTopics(${s.id})">
                     <div class="name">${escapeHtml(s.name)}</div>
                     <div class="desc">${escapeHtml(s.description || '')}</div>
+                    <div class="count">${s.topic_count || 0} тем</div>
                 </div>`
             ).join('');
         } else {
@@ -467,8 +468,12 @@ async function showTopics(id) {
 }
 
 // ===== ОБУЧЕНИЕ =====
+let allLearningMaterials = [];
+let openLearningGroups = new Set();
+
 function showLearning() {
     showScreen('learning-screen');
+    document.getElementById('learning-search-input').value = '';
     loadLearning();
 }
 
@@ -477,19 +482,83 @@ async function loadLearning() {
     container.innerHTML = skeletonRows(5);
 
     const data = await api('/api/learning');
-    if (data?.length) {
-        container.innerHTML = data.map(item =>
-            `<div class="learning-item" onclick="haptic('light'); showMaterial(${item.id})">
-                <div>
-                    <div class="title">${escapeHtml(item.title)}</div>
-                    <div class="desc">${escapeHtml(item.topic_name || '')}</div>
-                </div>
-                <span class="arrow">›</span>
-            </div>`
-        ).join('');
-    } else {
-        container.innerHTML = emptyState('Обучающих материалов пока нет.');
+    allLearningMaterials = data || [];
+    openLearningGroups = new Set();
+    renderLearningGroups(allLearningMaterials);
+}
+
+function groupByDiscipline(items) {
+    const groups = new Map();
+    items.forEach(item => {
+        const key = item.discipline_name || 'Другое';
+        if (!groups.has(key)) groups.set(key, { icon: item.discipline_icon, items: [] });
+        groups.get(key).items.push(item);
+    });
+    return groups;
+}
+
+function renderLearningGroups(items) {
+    const container = document.getElementById('learning-container');
+    if (!items.length) {
+        container.innerHTML = emptyState('Ничего не найдено.');
+        return;
     }
+
+    const groups = groupByDiscipline(items);
+    container.innerHTML = Array.from(groups.entries()).map(([discipline, group]) => {
+        const groupId = `lg-${discipline.replace(/[^a-zA-Zа-яА-Я0-9]/g, '')}`;
+        const isOpen = openLearningGroups.has(discipline);
+        return `
+            <div class="learning-group">
+                <button type="button" class="learning-group-header" onclick="toggleLearningGroup('${discipline.replace(/'/g, "\\'")}')">
+                    <span class="icon">${disciplineIconSvg(discipline)}</span>
+                    <span class="name">${escapeHtml(discipline)}</span>
+                    <span class="count">${group.items.length}</span>
+                    <span class="chevron ${isOpen ? 'open' : ''}">›</span>
+                </button>
+                <div class="learning-group-body ${isOpen ? 'open' : ''}" id="${groupId}">
+                    ${group.items.map(item => `
+                        <div class="learning-item" onclick="haptic('light'); showMaterial(${item.id})">
+                            <div>
+                                <div class="title">${escapeHtml(item.title)}</div>
+                                <div class="desc">${escapeHtml(item.topic_name || '')}</div>
+                            </div>
+                            <span class="arrow">›</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+    }).join('');
+}
+
+function toggleLearningGroup(discipline) {
+    haptic('light');
+    if (openLearningGroups.has(discipline)) {
+        openLearningGroups.delete(discipline);
+    } else {
+        openLearningGroups.add(discipline);
+    }
+    const query = document.getElementById('learning-search-input').value;
+    renderLearningGroups(filterMaterialsList(query));
+}
+
+function filterMaterialsList(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) return allLearningMaterials;
+    return allLearningMaterials.filter(item =>
+        (item.title || '').toLowerCase().includes(q) ||
+        (item.topic_name || '').toLowerCase().includes(q) ||
+        (item.discipline_name || '').toLowerCase().includes(q)
+    );
+}
+
+function filterLearning(query) {
+    const filtered = filterMaterialsList(query);
+    if (query.trim()) {
+        // При поиске раскрываем все совпавшие группы, чтобы результат сразу был виден
+        openLearningGroups = new Set(filtered.map(i => i.discipline_name || 'Другое'));
+    }
+    renderLearningGroups(filtered);
 }
 
 async function showMaterial(id) {
@@ -716,15 +785,18 @@ async function loadAchievements() {
     });
     const data = await api(`/api/achievements?${params.toString()}`);
     if (data?.length) {
-        container.innerHTML = data.map(a =>
-            `<div class="achievement ${a.unlocked ? 'unlocked' : 'locked'}">
+        container.innerHTML = data.map(a => {
+            const pct = a.unlocked ? 100 : Math.min(100, Math.round(((a.progress || 0) / a.condition_value) * 100));
+            return `<div class="achievement ${a.unlocked ? 'unlocked' : 'locked'}">
                 <span class="icon">${a.unlocked ? ICON_MEDAL : ICON_LOCK}</span>
                 <div class="info">
                     <div class="name">${escapeHtml(a.name)}</div>
-                    <div class="desc">${escapeHtml(a.description)} ${a.unlocked ? '' : `(${a.progress || 0}/${a.condition_value})`}</div>
+                    <div class="desc">${escapeHtml(a.description)}</div>
+                    <div class="achievement-progress-track"><div class="achievement-progress-fill" style="width:${pct}%"></div></div>
+                    ${a.unlocked ? '' : `<div class="achievement-progress-label">${a.progress || 0} / ${a.condition_value}</div>`}
                 </div>
-            </div>`
-        ).join('');
+            </div>`;
+        }).join('');
     } else {
         container.innerHTML = emptyState('Достижения пока не добавлены.');
     }
