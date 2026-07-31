@@ -21,6 +21,15 @@ seed_database()
 app = Flask(__name__, static_folder='web_app', static_url_path='')
 CORS(app)
 
+@app.after_request
+def add_no_cache_headers(response):
+    """Запрещаем клиентам (включая WebView Telegram) кэшировать HTML/CSS/JS
+    надолго, чтобы обновления интерфейса подхватывались сразу, а не зависали
+    в кэше на неопределённый срок."""
+    if request.path == '/' or request.path.endswith(('.html', '.css', '.js')):
+        response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+    return response
+
 # ============================================
 # 3. ВСЕ МАРШРУТЫ
 # ============================================
