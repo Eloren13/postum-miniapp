@@ -668,6 +668,15 @@ function startTopicQuiz(id) {
     });
 }
 
+function shuffleArray(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
 function showQuestion() {
     if (state.currentIndex >= state.questions.length) {
         showResult();
@@ -682,15 +691,26 @@ function showQuestion() {
     document.getElementById('question-difficulty').textContent = '●'.repeat(q.difficulty || 1) + '○'.repeat(3 - (q.difficulty || 1));
     document.getElementById('question-explanation').style.display = 'none';
 
-    const container = document.getElementById('options-container');
-    container.innerHTML = '';
+    const banner = document.getElementById('answer-banner');
+    banner.style.display = 'none';
+    banner.className = 'answer-banner';
+    document.getElementById('next-question-btn').style.display = 'none';
+
     let options = [];
     try { options = JSON.parse(q.options); } catch (e) { options = []; }
-    options.forEach((opt, i) => {
+
+    // Перемешиваем варианты, чтобы правильный ответ не оказывался
+    // предсказуемо в одной и той же позиции.
+    const order = shuffleArray(options.map((_, i) => i));
+    const shuffledCorrectIndex = order.indexOf(q.correct_answer);
+
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+    order.forEach((originalIndex, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
-        btn.textContent = opt;
-        btn.onclick = () => selectAnswer(i, q.correct_answer);
+        btn.textContent = options[originalIndex];
+        btn.onclick = () => selectAnswer(i, shuffledCorrectIndex);
         container.appendChild(btn);
     });
 }
@@ -706,6 +726,13 @@ function selectAnswer(selected, correct) {
     const q = state.questions[state.currentIndex];
     const isCorrect = selected === correct;
     haptic(isCorrect ? 'success' : 'error');
+
+    // Сразу и заметно показываем, верный ответ или нет — без этого
+    // не всегда понятно, засчитался ли тап, особенно на телефоне.
+    const banner = document.getElementById('answer-banner');
+    banner.style.display = 'block';
+    banner.className = `answer-banner ${isCorrect ? 'correct' : 'wrong'}`;
+    banner.textContent = isCorrect ? 'Верно!' : 'Неверно';
 
     if (isCorrect) {
         state.score += 10;
@@ -724,10 +751,16 @@ function selectAnswer(selected, correct) {
 
     saveProgress(q.id, isCorrect);
 
-    setTimeout(() => {
-        state.currentIndex++;
-        showQuestion();
-    }, 2600);
+    // Вместо молчаливой паузы даём кнопку "Далее" — пользователь сам
+    // решает, когда двигаться дальше, и точно знает, что тап засчитан.
+    const nextBtn = document.getElementById('next-question-btn');
+    nextBtn.style.display = 'block';
+    nextBtn.textContent = state.currentIndex + 1 >= state.questions.length ? 'Посмотреть результат' : 'Далее';
+}
+
+function advanceQuestion() {
+    state.currentIndex++;
+    showQuestion();
 }
 
 function showResult() {
