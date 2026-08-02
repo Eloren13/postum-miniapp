@@ -1025,6 +1025,35 @@ button, select {
     margin-bottom: 22px;
 }
 
+.answer-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 14px;
+    animation: fadeUp 0.2s ease;
+}
+
+.answer-banner.correct {
+    background: var(--success-bg);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+
+.answer-banner.wrong {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+}
+
+.next-question-btn {
+    margin-top: 16px;
+    animation: fadeUp 0.2s ease;
+}
+
 .options-grid {
     display: flex;
     flex-direction: column;
